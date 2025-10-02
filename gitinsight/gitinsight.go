@@ -1,0 +1,198 @@
+package gitinsight
+
+import (
+	"fmt"
+	"log"
+	"os"
+	"path/filepath"
+	"sort"
+	"strings"
+
+	"gopkg.in/src-d/go-git.v4"
+	"gopkg.in/src-d/go-git.v4/config"
+	"gopkg.in/src-d/go-git.v4/plumbing"
+	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
+)
+
+type Config struct {
+	Auths   []Auth            `mapstructure:"auths" description:"auths"`
+	Repos   []Repo            `mapstructure:"repos" description:"repos"`
+	Authors map[string]Author `mapstructure:"authors" description:"authors"`
+	Cache   Cache             `mapstructure:"cache" description:"cache"`
+}
+
+type Auth struct {
+	Domain   string `mapstructure:"domain" description:"domain"`
+	Username string `mapstructure:"username" description:"username"`
+	Password string `mapstructure:"password" description:"password"`
+}
+
+type Repo struct {
+	Url      string `mapstructure:"url" description:"url"`
+	User     string `mapstructure:"user" description:"user"`
+	Password string `mapstructure:"password" description:"password"`
+}
+
+type Cache struct {
+	Path string `mapstructure:"path" description:"path" default:"./repos"`
+}
+
+type Author struct {
+	Name  string `mapstructure:"name" description:"name"`
+	Email string `mapstructure:"email" description:"email"`
+}
+
+func FindAuth(config *Config, repo *Repo) *Auth {
+	for _, auth := range config.Auths {
+		if auth.Domain == strings.Split(repo.Url, "://")[0] {
+			return &auth
+		}
+	}
+	return nil
+}
+
+func SyncRepo(config *Config) (map[string][]string, error) {
+
+	repoStats := make(map[string][]string)
+
+	for i, repoInfo := range config.Repos {
+		log.Printf("\n[%d/%d] Processing repository: %s\n", i+1, len(config.Repos), repoInfo.Url)
+
+		repoName := strings.TrimSuffix(filepath.Base(repoInfo.Url), ".git")
+		repoPath := filepath.Join(config.Cache.Path, repoName)
+
+		auth := FindAuth(config, &repoInfo)
+		if repoInfo.Password == "" && auth != nil {
+			repoInfo.Password = auth.Password
+		}
+		// Determine which credentials to use
+		username := repoInfo.User
+		password := repoInfo.Password
+
+		if username == "" || password == "" {
+			return nil, fmt.Errorf("username or password is empty")
+		}
+
+		// Clone or update repository
+		repo, err := CloneOrUpdateRepo(repoInfo.Url, repoPath, username, password)
+		if err != nil {
+			return nil, fmt.Errorf("error processing %s: %v", repoInfo.Url, err)
+		}
+
+		// Get all branches
+		branches, err := GetBranches(repo)
+		if err != nil {
+			return nil, fmt.Errorf("error getting branches for %s: %v", repoInfo.Url, err)
+		}
+		fmt.Printf("✓ Found %d branches\n", len(branches))
+		repoStats[repoPath] = branches
+	}
+	return repoStats, nil
+}
+
+func CloneOrUpdateRepo(url, path, username, password string) (*git.Repository, error) {
+	// Get authentication
+	var auth *http.BasicAuth
+
+	// Check if repo exists
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		// Clone the repository with all branches
+		fmt.Printf("Cloning %s to %s...\n", url, path)
+		repo, err := git.PlainClone(path, false, &git.CloneOptions{
+			URL:      url,
+			Auth:     auth,
+			Progress: os.Stdout,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		// Fetch all remote branches
+		err = repo.Fetch(&git.FetchOptions{
+			RemoteName: "origin",
+			Auth:       auth,
+			RefSpecs:   []config.RefSpec{"refs/heads/*:refs/remotes/origin/*"},
+			Progress:   os.Stdout,
+		})
+		if err != nil && err != git.NoErrAlreadyUpToDate {
+			return nil, fmt.Errorf("could not fetch all branches: %v", err)
+		}
+
+		return repo, nil
+	}
+
+	// Open existing repository
+	fmt.Printf("Updating %s...\n", path)
+	repo, err := git.PlainOpen(path)
+	if err != nil {
+		return nil, err
+	}
+
+	// Fetch all branches from remote
+	fmt.Println("  Fetching all branches...")
+	err = repo.Fetch(&git.FetchOptions{
+		RemoteName: "origin",
+		Auth:       auth,
+		RefSpecs:   []config.RefSpec{"refs/heads/*:refs/remotes/origin/*"},
+		Progress:   os.Stdout,
+		Force:      true,
+	})
+
+	if err != nil && err != git.NoErrAlreadyUpToDate {
+		return nil, fmt.Errorf("fetch error: %v", err)
+	}
+
+	// Try to pull current branch
+	w, err := repo.Worktree()
+	if err == nil {
+		err = w.Pull(&git.PullOptions{
+			RemoteName: "origin",
+			Auth:       auth,
+		})
+		if err != nil && err != git.NoErrAlreadyUpToDate {
+			return nil, fmt.Errorf("pull error: %v", err)
+		}
+	}
+
+	return repo, nil
+}
+
+func GetBranches(repo *git.Repository) ([]string, error) {
+	var branches []string
+	branchMap := make(map[string]bool)
+
+	// Get all remote references
+	remoteRefs, err := repo.References()
+	if err != nil {
+		return nil, err
+	}
+
+	err = remoteRefs.ForEach(func(ref *plumbing.Reference) error {
+		refName := ref.Name().String()
+
+		// Check if it's a remote branch
+		if strings.HasPrefix(refName, "refs/remotes/origin/") {
+			branchName := strings.TrimPrefix(refName, "refs/remotes/origin/")
+			// Skip HEAD reference
+			if branchName != "HEAD" {
+				branchMap[branchName] = true
+			}
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert map to slice
+	for branch := range branchMap {
+		branches = append(branches, branch)
+	}
+
+	// Sort branches for consistent output
+	sort.Strings(branches)
+
+	return branches, nil
+}
