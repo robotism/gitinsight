@@ -83,7 +83,7 @@ func SyncRepo(config *Config) (map[string][]string, error) {
 		if err != nil {
 			return nil, fmt.Errorf("error getting branches for %s: %v", repoInfo.Url, err)
 		}
-		fmt.Printf("    ✓ Found %d branches\n", len(branches))
+		log.Printf("    ✓ Found %d branches\n", len(branches))
 		repoStats[repoPath] = branches
 	}
 	return repoStats, nil
@@ -106,7 +106,7 @@ func CloneOrUpdateRepo(url, path, username, password string) (*git.Repository, e
 	// Check if repo exists
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		// Clone the repository with all branches
-		fmt.Printf("Cloning %s to %s...\n", url, path)
+		log.Printf("Cloning %s to %s...\n", url, path)
 		repo, err := git.PlainClone(path, false, &git.CloneOptions{
 			URL:      url,
 			Auth:     auth,
@@ -131,14 +131,14 @@ func CloneOrUpdateRepo(url, path, username, password string) (*git.Repository, e
 	}
 
 	// Open existing repository
-	fmt.Printf("Updating %s...\n", path)
+	log.Printf("Updating %s...\n", path)
 	repo, err := git.PlainOpen(path)
 	if err != nil {
 		return nil, err
 	}
 
 	// Fetch all branches from remote
-	fmt.Println("  Fetching all branches...")
+	log.Println("  Fetching all branches...")
 	err = repo.Fetch(&git.FetchOptions{
 		RemoteName: "origin",
 		Auth:       auth,
