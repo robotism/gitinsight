@@ -38,11 +38,12 @@ func ProcessCrond(insight *gitinsight.Config) {
 	}
 
 	for repoPath, branchNames := range repos {
-		err := AnalyzeBranchCommitLogs(insight, repoPath, branchNames)
-		if err != nil {
-			log.Printf("Error analyzing repository %s: %v\n", repoPath, err)
-			panic(err)
-		}
+		go func() {
+			err := AnalyzeBranchCommitLogs(insight, repoPath, branchNames)
+			if err != nil {
+				log.Printf("❌ Error analyzing repository %s: %v\n", repoPath, err)
+			}
+		}()
 	}
 }
 
@@ -50,10 +51,10 @@ func AnalyzeBranchCommitLogs(insight *gitinsight.Config, repoPath string, branch
 	repoUrl := gitinsight.GetRepoRemoteUrl(repoPath)
 	repoStats, err := gitinsight.AnalyzeRepoCommitLogs(insight, repoPath, branchNames)
 	if err != nil {
-		log.Printf("Error analyzing repository %s: %v\n", repoPath, err)
+		log.Printf("❌ Error analyzing repository %s: %v\n", repoPath, err)
 		return err
 	}
-	log.Printf("Analyzed %d repositories\n", len(repoStats))
+	log.Printf(" Analyzed %d repositories\n", len(repoStats))
 	for branchName, commitLogs := range repoStats {
 		log.Printf("   Analyzing repo %s branch %s\n", repoPath, branchName)
 		isUpToDate, err := IsRepoUpToDate(repoPath, branchName)

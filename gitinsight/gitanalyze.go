@@ -87,11 +87,11 @@ func AnalyzeRepoCommitLogs(config *Config, repoPath string, branchNames []string
 	repoStats := make(map[string][]CommitLog)
 
 	for _, name := range branchNames {
-		fmt.Printf("  Analyzing branch: %s\n", name)
+		fmt.Printf("🚀  Analyzing branch: %s\n", name)
 		// Get branch stats
 		commitLogs, err := AnalyzeBranchCommitLogs(config, repo, name)
 		if err != nil {
-			log.Printf("  ⚠ Error analyzing branch %s: %v\n", name, err)
+			log.Printf("  ⚠️ Error analyzing branch %s: %v\n", name, err)
 			continue
 		}
 		fmt.Printf("  ✓ Found %d commits\n", len(commitLogs))
