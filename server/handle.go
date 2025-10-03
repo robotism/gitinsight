@@ -13,24 +13,23 @@ func AnalyzeBranchCommitLogs(insight *gitinsight.Config, repoPath string, branch
 		log.Printf("❌ Error analyzing repository %s: %v\n", repoPath, err)
 		return err
 	}
-	log.Printf(" Analyzed %d repositories\n", len(repoStats))
+
 	for branchName, commitLogs := range repoStats {
-		log.Printf("   Analyzing repo %s branch %s\n", repoPath, branchName)
-		isUpToDate, err := IsRepoUpToDate(repoPath, branchName)
+		log.Printf("   ⏳ Caching repo %s branch %s\n", repoUrl, branchName)
+		isUpToDate, err := IsRepoUpToDate(repoUrl, repoPath, branchName)
 		if err != nil {
-			log.Printf("Error checking repo %s branch %s: %v\n", repoPath, branchName, err)
+			log.Printf("❌ Error checking repo %s branch %s: %v\n", repoUrl, branchName, err)
 			return err
 		}
 		if isUpToDate {
-			log.Printf("✅   Repo %s branch %s is up to date\n", repoPath, branchName)
+			log.Printf("✅   Repo %s branch %s is up to date\n", repoUrl, branchName)
 			continue
 		}
 
-		commitLogsModels := make([]gitinsight.CommitLogModel, len(commitLogs))
+		commitLogModels := make([]gitinsight.CommitLogModel, len(commitLogs))
 		for i, commitLog := range commitLogs {
-			commitLogsModels[i] = gitinsight.CommitLogModel{
+			commitLogModels[i] = gitinsight.CommitLogModel{
 				RepoUrl:       repoUrl,
-				RepoPath:      repoPath,
 				BranchName:    branchName,
 				CommitHash:    commitLog.Hash,
 				IsMerge:       commitLog.IsMerge,
@@ -46,44 +45,43 @@ func AnalyzeBranchCommitLogs(insight *gitinsight.Config, repoPath string, branch
 				Nickname:      commitLog.Nickname,
 			}
 		}
-		_, err = gitinsight.ReplaceCommitLogs(repoPath, branchName, commitLogsModels)
+		_, err = gitinsight.ReplaceCommitLogs(repoUrl, branchName, commitLogModels)
 		if err != nil {
-			log.Printf("Error clearing commit logs: %v\n", err)
+			log.Printf("❌ Error caching commit logs: %v\n", err)
 			return err
 		}
-
+		log.Printf("✅   Cached repo %s branch commit logs\n", repoUrl)
 	}
 	return nil
 }
 
-func IsRepoUpToDate(repoPath string, branchName string) (bool, error) {
-	log.Printf("----Checking repo %s branch %s\n", repoPath, branchName)
+func IsRepoUpToDate(repoUrl string, repoPath string, branchName string) (bool, error) {
 
 	localState, err := gitinsight.GetLatestCommitState(repoPath, branchName)
 	if err != nil {
-		log.Printf("Error getting latest commit state: %v\n", err)
+		log.Printf("❌ Error getting latest commit state: %v\n", err)
 		return false, err
 	}
 	log.Printf("----Local state: %v\n", localState)
 
 	cacheCount, err := gitinsight.CountCommitLogs(&gitinsight.CommitLogFilter{
-		RepoPath:   repoPath,
+		RepoUrl:    repoUrl,
 		BranchName: branchName,
 	})
 	if err != nil {
-		log.Printf("Error count cache commit state: %v\n", err)
+		log.Printf("❌  count cache commit state: %v\n", err)
 		return false, err
 	}
 	log.Printf("----Cache count: %d\n", cacheCount)
 
 	cacheLastestLog, err := gitinsight.GetCommitLogs(&gitinsight.CommitLogFilter{
-		RepoPath:   repoPath,
+		RepoUrl:    repoUrl,
 		BranchName: branchName,
 	}, 0, 1)
 	log.Printf("----Cache latest log: %v\n", cacheLastestLog)
 
 	if err != nil {
-		log.Printf("Error getting cache commit state: %v\n", err)
+		log.Printf("❌ Error getting cache commit state: %v\n", err)
 		return false, err
 	}
 	if len(cacheLastestLog) != 0 {

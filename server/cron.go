@@ -33,7 +33,7 @@ func StopCrond() {
 func ProcessCrond(insight *gitinsight.Config) {
 	repos, err := gitinsight.SyncRepo(insight)
 	if err != nil {
-		log.Printf("Error syncing repository: %v\n", err)
+		log.Printf("❌ Error syncing repository: %v\n", err)
 		return
 	}
 

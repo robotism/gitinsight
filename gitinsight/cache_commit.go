@@ -17,13 +17,13 @@ import (
 type CommitLogModel struct {
 	bun.BaseModel `bun:"table:commit_logs,alias:cl"`
 
-	ID          int64  `bun:"id,pk,autoincrement"`
-	RepoUrl     string `bun:",notnull"`
-	RepoPath    string `bun:",notnull"`
+	ID      int64  `bun:"id,pk,autoincrement"`
+	RepoUrl string `bun:",notnull"`
+
 	BranchName  string `bun:",notnull"`
 	CommitHash  string `bun:",notnull"`
 	IsMerge     bool   `bun:",notnull"`
-	Message     string `bun:",notnull"`
+	Message     string `bun:",notnull,type:text"`
 	MessageType string `bun:",notnull"`
 
 	Date time.Time `bun:",notnull"`
@@ -31,7 +31,7 @@ type CommitLogModel struct {
 	Additions     int    `bun:",notnull"`
 	Deletions     int    `bun:",notnull"`
 	Effectives    int    `bun:",notnull"`
-	LanguageStats string `bun:",notnull"`
+	LanguageStats string `bun:",notnull,type:text"`
 
 	AuthorName  string `bun:",notnull"`
 	AuthorEmail string `bun:",notnull"`
@@ -40,7 +40,6 @@ type CommitLogModel struct {
 
 type CommitLogFilter struct {
 	RepoUrl    string `bun:"repo_url"`
-	RepoPath   string `bun:"repo_path"`
 	BranchName string `bun:"branch_name"`
 	CommitHash string `bun:"commit_hash"`
 
@@ -62,7 +61,6 @@ func InitCommit() error {
 
 	indexes := map[string]string{
 		"idx_repo_url":     "repo_url",
-		"idx_repo_path":    "repo_path",
 		"idx_branch_name":  "branch_name",
 		"idx_commit_hash":  "commit_hash",
 		"idx_date":         "date",
@@ -80,14 +78,14 @@ func InitCommit() error {
 	return nil
 }
 
-func ReplaceCommitLogs(repoPath string, branchName string, commitLogs []CommitLogModel) (int64, error) {
+func ReplaceCommitLogs(repoUrl string, branchName string, commitLogs []CommitLogModel) (int64, error) {
 	if gdb == nil {
 		return 0, errors.New("database not initialized")
 	}
 	ctx := context.Background()
 	var rowsAffected int64
-	gdb.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
-		_, err := tx.NewDelete().Model(&CommitLogModel{}).Where("repo_path = ? AND branch_name = ?", repoPath, branchName).Exec(ctx)
+	err := gdb.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
+		_, err := tx.NewDelete().Model(&CommitLogModel{}).Where("repo_url = ? AND branch_name = ?", repoUrl, branchName).Exec(ctx)
 		if err != nil {
 			return err
 		}
@@ -113,6 +111,9 @@ func ReplaceCommitLogs(repoPath string, branchName string, commitLogs []CommitLo
 		}
 		return nil
 	})
+	if err != nil {
+		return 0, err
+	}
 	return rowsAffected, nil
 }
 
@@ -156,9 +157,6 @@ func CountCommitLogs(filter *CommitLogFilter) (int, error) {
 	if filter.RepoUrl != "" {
 		query.Where("repo_url IN (?)", bun.In(strings.Split(filter.RepoUrl, ",")))
 	}
-	if filter.RepoPath != "" {
-		query.Where("repo_path IN (?)", bun.In(strings.Split(filter.RepoPath, ",")))
-	}
 	if filter.BranchName != "" {
 		query.Where("branch_name IN (?)", bun.In(strings.Split(filter.BranchName, ",")))
 	}
@@ -192,9 +190,6 @@ func GetCommitLogs(filter *CommitLogFilter, offset int, limit int) ([]CommitLogM
 	query := gdb.NewSelect().Model(&CommitLogModel{})
 	if filter.RepoUrl != "" {
 		query.Where("repo_url IN (?)", bun.In(strings.Split(filter.RepoUrl, ",")))
-	}
-	if filter.RepoPath != "" {
-		query.Where("repo_path IN (?)", bun.In(strings.Split(filter.RepoPath, ",")))
 	}
 	if filter.BranchName != "" {
 		query.Where("branch_name IN (?)", bun.In(strings.Split(filter.BranchName, ",")))
@@ -230,9 +225,6 @@ func DelCommitLog(filter *CommitLogFilter) (int64, error) {
 	query := gdb.NewDelete().Model(&CommitLogModel{})
 	if filter.RepoUrl != "" {
 		query.Where("repo_url IN (?)", bun.In(strings.Split(filter.RepoUrl, ",")))
-	}
-	if filter.RepoPath != "" {
-		query.Where("repo_path IN (?)", bun.In(strings.Split(filter.RepoPath, ",")))
 	}
 	if filter.BranchName != "" {
 		query.Where("branch_name IN (?)", bun.In(strings.Split(filter.BranchName, ",")))

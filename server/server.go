@@ -1,6 +1,8 @@
 package server
 
 import (
+	"log"
+
 	"github.com/gin-gonic/gin"
 	"github.com/robotism/gitinsight/gitinsight"
 )
@@ -34,6 +36,8 @@ func Run(config *AppConfig) error {
 	if err != nil {
 		return err
 	}
+
+	log.Printf("load config: %v\n", config)
 
 	StartCrond(&insight)
 

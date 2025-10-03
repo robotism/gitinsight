@@ -93,7 +93,7 @@ func AnalyzeRepoCommitLogs(config *Config, repoPath string, branchNames []string
 	repoStats := make(map[string][]CommitLog)
 
 	for _, name := range branchNames {
-		log.Printf("🚀  Analyzing branch: %s\n", name)
+		log.Printf("🚀  Analyzing branch: %s %s\n", repoPath, name)
 		// Get branch stats
 		commitLogs, err := AnalyzeBranchCommitLogs(config, repo, name)
 		if err != nil {
@@ -123,33 +123,57 @@ func AnalyzeBranchCommitLogs(config *Config, repo *git.Repository, branchName st
 	}
 
 	// Get the commit history
-	cIter, err := repo.Log(&git.LogOptions{From: branchRef.Hash()})
+	cIter, err := repo.Log(&git.LogOptions{
+		From: branchRef.Hash(),
+		All:  true, // 遍历所有提交，不仅仅是单条链
+	})
+
 	if err != nil {
 		return nil, fmt.Errorf("could not get commit history: %v", err)
 	}
 
 	commitLogs := make([]CommitLog, 0)
 
-	for {
-		c, err := cIter.Next()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return commitLogs, err
-		}
-
+	cIter.ForEach(func(c *object.Commit) error {
 		// Get diff stats
-		var fileStats object.FileStats
+		additions, deletions := 0, 0
+		// var fileStats object.FileStats
+		// if c.NumParents() > 0 {
+		// 	parent, err := c.Parents().Next()
+		// 	if err == nil {
+		// 		parentTree, _ := parent.Tree()
+		// 		commitTree, _ := c.Tree()
+		// 		changes, _ := object.DiffTree(parentTree, commitTree)
+		// 		patch, _ := changes.Patch()
+		// 		if patch != nil {
+		// 			fileStats = patch.Stats()
+		// 		}
+		// 	}
+		// }
+		// for _, stat := range fileStats {
+		// 	additions += stat.Addition
+		// 	deletions += stat.Deletion
+		// }
 		if c.NumParents() > 0 {
-			parent, err := c.Parents().Next()
-			if err == nil {
+			parentIter := c.Parents()
+			for {
+				parent, err := parentIter.Next()
+				if err == io.EOF {
+					break
+				}
+				if err != nil {
+					break
+				}
 				parentTree, _ := parent.Tree()
 				commitTree, _ := c.Tree()
 				changes, _ := object.DiffTree(parentTree, commitTree)
 				patch, _ := changes.Patch()
 				if patch != nil {
-					fileStats = patch.Stats()
+					stats := patch.Stats()
+					for _, stat := range stats {
+						additions += stat.Addition
+						deletions += stat.Deletion
+					}
 				}
 			}
 		}
@@ -161,12 +185,6 @@ func AnalyzeBranchCommitLogs(config *Config, repo *git.Repository, branchName st
 			return nil
 		})
 		languageStatsJson, _ := json.Marshal(languageStats)
-
-		additions, deletions := 0, 0
-		for _, stat := range fileStats {
-			additions += stat.Addition
-			deletions += stat.Deletion
-		}
 
 		// Update commit stats
 		commitLog := CommitLog{
@@ -184,7 +202,8 @@ func AnalyzeBranchCommitLogs(config *Config, repo *git.Repository, branchName st
 			LanguageStats: string(languageStatsJson),
 		}
 		commitLogs = append(commitLogs, commitLog)
-	}
+		return nil
+	})
 
 	return commitLogs, nil
 }
