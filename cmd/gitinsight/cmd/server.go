@@ -16,7 +16,8 @@ var serverCmd = &cobra.Command{
 	Use: "serv",
 	Run: func(cmd *cobra.Command, args []string) {
 		// cmd.Help()
-		server.Run(serverConfig)
+		err := server.Run(serverConfig)
+		panic(err)
 	},
 }
 

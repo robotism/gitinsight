@@ -15,10 +15,10 @@ import (
 )
 
 type Config struct {
-	Auths   []Auth            `mapstructure:"auths" description:"auths"`
-	Repos   []Repo            `mapstructure:"repos" description:"repos"`
-	Authors map[string]Author `mapstructure:"authors" description:"authors"`
-	Cache   Cache             `mapstructure:"cache" description:"cache"`
+	Auths   []Auth   `mapstructure:"auths" description:"auths"`
+	Repos   []Repo   `mapstructure:"repos" description:"repos"`
+	Authors []Author `mapstructure:"authors" description:"authors"`
+	Cache   Cache    `mapstructure:"cache" description:"cache"`
 }
 
 type Auth struct {
@@ -34,21 +34,13 @@ type Repo struct {
 }
 
 type Cache struct {
-	Path string `mapstructure:"path" description:"path" default:"./repos"`
+	Path string `mapstructure:"path" description:"path" default:"./.repos"`
 }
 
 type Author struct {
-	Name  string `mapstructure:"name" description:"name"`
-	Email string `mapstructure:"email" description:"email"`
-}
-
-func FindAuth(config *Config, repo *Repo) *Auth {
-	for _, auth := range config.Auths {
-		if auth.Domain == strings.Split(repo.Url, "://")[0] {
-			return &auth
-		}
-	}
-	return nil
+	Name     string `mapstructure:"name" description:"name"`
+	Email    string `mapstructure:"email" description:"email"`
+	Nickname string `mapstructure:"nickname" description:"nickname"`
 }
 
 func SyncRepo(config *Config) (map[string][]string, error) {
@@ -62,8 +54,13 @@ func SyncRepo(config *Config) (map[string][]string, error) {
 		repoPath := filepath.Join(config.Cache.Path, repoName)
 
 		auth := FindAuth(config, &repoInfo)
-		if repoInfo.Password == "" && auth != nil {
-			repoInfo.Password = auth.Password
+		if auth != nil {
+			if repoInfo.User == "" {
+				repoInfo.User = auth.Username
+			}
+			if repoInfo.Password == "" {
+				repoInfo.Password = auth.Password
+			}
 		}
 		// Determine which credentials to use
 		username := repoInfo.User
@@ -84,7 +81,7 @@ func SyncRepo(config *Config) (map[string][]string, error) {
 		if err != nil {
 			return nil, fmt.Errorf("error getting branches for %s: %v", repoInfo.Url, err)
 		}
-		fmt.Printf("✓ Found %d branches\n", len(branches))
+		fmt.Printf("    ✓ Found %d branches\n", len(branches))
 		repoStats[repoPath] = branches
 	}
 	return repoStats, nil
@@ -93,6 +90,16 @@ func SyncRepo(config *Config) (map[string][]string, error) {
 func CloneOrUpdateRepo(url, path, username, password string) (*git.Repository, error) {
 	// Get authentication
 	var auth *http.BasicAuth
+
+	// Priority: 1. Function parameters, 2. Environment variables
+	if username != "" && password != "" {
+		auth = &http.BasicAuth{
+			Username: username,
+			Password: password,
+		}
+	} else {
+		return nil, fmt.Errorf("username or password is empty")
+	}
 
 	// Check if repo exists
 	if _, err := os.Stat(path); os.IsNotExist(err) {

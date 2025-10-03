@@ -50,11 +50,15 @@ var configGenCmd = &cobra.Command{
 						Password: "robotism",
 					},
 				},
-				Authors: map[string]gitinsight.Author{
-					"robotism": {
-						Name:  "robotism",
-						Email: "robotism@robotism.com",
+				Authors: []gitinsight.Author{
+					{
+						Name:     "robotism",
+						Email:    "robotism@robotism.com",
+						Nickname: "robotism",
 					},
+				},
+				Cache: gitinsight.Cache{
+					Path: "./.repos",
 				},
 			},
 		}

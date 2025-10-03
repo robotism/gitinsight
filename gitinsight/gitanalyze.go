@@ -2,6 +2,7 @@ package gitinsight
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"strings"
 	"time"
@@ -14,36 +15,78 @@ import (
 type CommitLog struct {
 	Hash        string
 	Message     string
+	MessageType string
 	Date        time.Time
 	Additions   int
 	Deletions   int
+	Effectives  int
 	AuthorName  string
 	AuthorEmail string
+	DisplayName string
 }
 
-func AnalyzeRepo(repoPath string, branchNames []string) (map[string][]CommitLog, error) {
+type BranchState struct {
+	LatestCommitHash string
+	CommitLogsCount  int
+}
+
+func GetLatestCommitState(repoPath string, branchName string) (*BranchState, error) {
+	repo, err := git.PlainOpen(repoPath)
+	if err != nil {
+		return nil, err
+	}
+	branchRef, err := repo.Reference(plumbing.ReferenceName("refs/heads/"+branchName), true)
+	if err != nil {
+		return nil, err
+	}
+	count := 0
+	cIter, err := repo.Log(&git.LogOptions{From: branchRef.Hash()})
+	if err != nil {
+		return nil, err
+	}
+	hash := ""
+	for {
+		c, err := cIter.Next()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+		if hash == "" {
+			hash = c.Hash.String()
+		}
+		count++
+	}
+	return &BranchState{
+		LatestCommitHash: hash,
+		CommitLogsCount:  count,
+	}, nil
+}
+
+func AnalyzeRepoCommitLogs(config *Config, repoPath string, branchNames []string) (map[string][]CommitLog, error) {
 	repo, err := git.PlainOpen(repoPath)
 	if err != nil {
 		return nil, err
 	}
 	repoStats := make(map[string][]CommitLog)
 
-	for j, branch := range branchNames {
-		fmt.Printf("  [%d/%d] Analyzing branch: %s\n", j+1, len(branchNames), branch)
+	for _, name := range branchNames {
+		fmt.Printf("  Analyzing branch: %s\n", name)
 		// Get branch stats
-		commitLogs, err := AnalyzeBranch(repo, branch)
+		commitLogs, err := AnalyzeBranchCommitLogs(config, repo, name)
 		if err != nil {
-			log.Printf("  ⚠ Error analyzing branch %s: %v\n", branch, err)
+			log.Printf("  ⚠ Error analyzing branch %s: %v\n", name, err)
 			continue
 		}
 		fmt.Printf("  ✓ Found %d commits\n", len(commitLogs))
-		repoStats[branch] = commitLogs
+		repoStats[name] = commitLogs
 	}
 
 	return repoStats, nil
 }
 
-func AnalyzeBranch(repo *git.Repository, branchName string) ([]CommitLog, error) {
+func AnalyzeBranchCommitLogs(config *Config, repo *git.Repository, branchName string) ([]CommitLog, error) {
 	// Get the branch reference (try local first, then remote)
 	var branchRef *plumbing.Reference
 	var err error
@@ -66,8 +109,14 @@ func AnalyzeBranch(repo *git.Repository, branchName string) ([]CommitLog, error)
 
 	commitLogs := make([]CommitLog, 0)
 
-	// Process each commit
-	err = cIter.ForEach(func(c *object.Commit) error {
+	for {
+		c, err := cIter.Next()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return commitLogs, err
+		}
 
 		// Get diff stats
 		var fileStats object.FileStats
@@ -94,18 +143,16 @@ func AnalyzeBranch(repo *git.Repository, branchName string) ([]CommitLog, error)
 		commitLog := CommitLog{
 			Hash:        c.Hash.String(),
 			Message:     strings.TrimSpace(c.Message),
+			MessageType: GetMessageType(c.Message),
 			Date:        c.Author.When,
 			Additions:   additions,
 			Deletions:   deletions,
+			Effectives:  additions - deletions,
 			AuthorName:  c.Author.Name,
 			AuthorEmail: c.Author.Email,
+			DisplayName: FindNickname(config, c.Author.Name, c.Author.Email),
 		}
 		commitLogs = append(commitLogs, commitLog)
-		return nil
-	})
-
-	if err != nil {
-		return nil, fmt.Errorf("error processing commits: %v", err)
 	}
 
 	return commitLogs, nil

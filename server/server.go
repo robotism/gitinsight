@@ -15,9 +15,14 @@ type Server struct {
 	Address string `mapstructure:"address" description:"address" default:"0.0.0.0:8080"`
 }
 
-func Run(config *AppConfig) {
+func Run(config *AppConfig) error {
 	insight := config.Insight
 	server := config.Server
+
+	err := gitinsight.OpenDb()
+	if err != nil {
+		return err
+	}
 
 	StartCrond(&insight)
 
@@ -32,4 +37,5 @@ func Run(config *AppConfig) {
 	})
 	g.Run(server.Address)
 
+	return nil
 }
