@@ -61,6 +61,7 @@ var configGenCmd = &cobra.Command{
 					Path: "./.repos",
 				},
 				Parallel: true,
+				Interval: "5m",
 			},
 		}
 		fmt := filepath.Ext(genConfig.File)

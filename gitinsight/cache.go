@@ -31,7 +31,7 @@ type CommitLogModel struct {
 	Effectives  int       `bun:",notnull"`
 	AuthorName  string    `bun:",notnull"`
 	AuthorEmail string    `bun:",notnull"`
-	DisplayName string    `bun:",notnull"`
+	Nickname string    `bun:",notnull"`
 }
 
 type CommitLogFilter struct {

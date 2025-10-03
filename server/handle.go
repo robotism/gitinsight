@@ -42,7 +42,7 @@ func AnalyzeBranchCommitLogs(insight *gitinsight.Config, repoPath string, branch
 				Effectives:  commitLog.Effectives,
 				AuthorName:  commitLog.AuthorName,
 				AuthorEmail: commitLog.AuthorEmail,
-				DisplayName: commitLog.DisplayName,
+				Nickname:    commitLog.Nickname,
 			}
 		}
 		_, err = gitinsight.ReplaceCommitLogs(repoPath, branchName, commitLogsModels)

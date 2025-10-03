@@ -13,7 +13,7 @@ var syncing bool
 func StartCrond(insight *gitinsight.Config) {
 	go ProcessCrond(insight)
 	crond = cron.New()
-	crond.AddFunc("@every 1m", func() {
+	crond.AddFunc("@every "+insight.Interval, func() {
 		if syncing {
 			return
 		}

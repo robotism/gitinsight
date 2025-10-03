@@ -24,7 +24,7 @@ type CommitLog struct {
 	Effectives  int
 	AuthorName  string
 	AuthorEmail string
-	DisplayName string
+	Nickname string
 }
 
 type BranchState struct {
@@ -167,7 +167,7 @@ func AnalyzeBranchCommitLogs(config *Config, repo *git.Repository, branchName st
 			Effectives:  additions - deletions,
 			AuthorName:  c.Author.Name,
 			AuthorEmail: c.Author.Email,
-			DisplayName: FindNickname(config, c.Author.Name, c.Author.Email),
+			Nickname: FindNickname(config, c.Author.Name, c.Author.Email),
 		}
 		commitLogs = append(commitLogs, commitLog)
 	}
