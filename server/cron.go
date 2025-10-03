@@ -38,7 +38,7 @@ func ProcessCrond(insight *gitinsight.Config) {
 	}
 
 	for repoPath, branchNames := range repos {
-		AnalyzeBranchCommitLogs(insight, repoPath, branchNames)
+		go AnalyzeBranchCommitLogs(insight, repoPath, branchNames)
 	}
 }
 
