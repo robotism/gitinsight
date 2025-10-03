@@ -17,6 +17,7 @@ type CommitLog struct {
 	Hash        string
 	Message     string
 	MessageType string
+	IsMerge     bool
 	Date        time.Time
 	Additions   int
 	Deletions   int
@@ -159,6 +160,7 @@ func AnalyzeBranchCommitLogs(config *Config, repo *git.Repository, branchName st
 			Hash:        c.Hash.String(),
 			Message:     strings.TrimSpace(c.Message),
 			MessageType: GetMessageType(c.Message),
+			IsMerge:     len(c.ParentHashes) > 1,
 			Date:        c.Author.When,
 			Additions:   additions,
 			Deletions:   deletions,

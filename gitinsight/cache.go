@@ -22,6 +22,7 @@ type CommitLogModel struct {
 	RepoPath    string    `bun:",notnull"`
 	BranchName  string    `bun:",notnull"`
 	CommitHash  string    `bun:",notnull"`
+	IsMerge     bool      `bun:",notnull"`
 	Message     string    `bun:",notnull"`
 	MessageType string    `bun:",notnull"`
 	Date        time.Time `bun:",notnull"`

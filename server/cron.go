@@ -74,6 +74,7 @@ func AnalyzeBranchCommitLogs(insight *gitinsight.Config, repoPath string, branch
 				RepoPath:    repoPath,
 				BranchName:  branchName,
 				CommitHash:  commitLog.Hash,
+				IsMerge:     commitLog.IsMerge,
 				Message:     commitLog.Message,
 				MessageType: commitLog.MessageType,
 				Date:        commitLog.Date,
