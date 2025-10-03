@@ -43,6 +43,7 @@ func GetRepoRemoteUrl(repoPath string) string {
 }
 
 func GetMessageType(message string) string {
+	message = strings.ReplaceAll(message, "：", ":")
 	if !strings.Contains(message, ":") {
 		return ""
 	}

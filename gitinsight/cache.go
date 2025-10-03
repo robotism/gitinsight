@@ -138,7 +138,7 @@ func ReplaceCommitLogs(repoPath string, branchName string, commitLogs []CommitLo
 				end = len(commitLogs)
 			}
 			segment := commitLogs[i:end]
-			result, err := gdb.NewInsert().Model(&segment).Exec(ctx)
+			result, err := tx.NewInsert().Model(&segment).Exec(ctx)
 			if err != nil {
 				return err
 			}
