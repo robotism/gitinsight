@@ -1,16 +1,18 @@
 package gitinsight
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"log"
+	"path/filepath"
 	"strings"
 	"time"
 
-	"gopkg.in/src-d/go-git.v4"
-	"gopkg.in/src-d/go-git.v4/plumbing"
-	"gopkg.in/src-d/go-git.v4/plumbing/object"
+	"github.com/go-git/go-git/v6"
+	"github.com/go-git/go-git/v6/plumbing"
+	"github.com/go-git/go-git/v6/plumbing/object"
 )
 
 type CommitLog struct {
@@ -19,12 +21,15 @@ type CommitLog struct {
 	MessageType string
 	IsMerge     bool
 	Date        time.Time
-	Additions   int
-	Deletions   int
-	Effectives  int
+
+	Additions     int
+	Deletions     int
+	Effectives    int
+	LanguageStats string
+
 	AuthorName  string
 	AuthorEmail string
-	Nickname string
+	Nickname    string
 }
 
 type BranchState struct {
@@ -95,7 +100,7 @@ func AnalyzeRepoCommitLogs(config *Config, repoPath string, branchNames []string
 			log.Printf("  ⚠️ Error analyzing branch %s: %v\n", name, err)
 			continue
 		}
-		log.Printf("  ✓ Found %d commits\n", len(commitLogs))
+		log.Printf("    Found %d commits\n", len(commitLogs))
 		repoStats[name] = commitLogs
 	}
 
@@ -149,6 +154,14 @@ func AnalyzeBranchCommitLogs(config *Config, repo *git.Repository, branchName st
 			}
 		}
 
+		languageStats := make(map[string]int)
+		f, _ := c.Files()
+		f.ForEach(func(f *object.File) error {
+			languageStats[filepath.Ext(f.Name)]++
+			return nil
+		})
+		languageStatsJson, _ := json.Marshal(languageStats)
+
 		additions, deletions := 0, 0
 		for _, stat := range fileStats {
 			additions += stat.Addition
@@ -157,17 +170,18 @@ func AnalyzeBranchCommitLogs(config *Config, repo *git.Repository, branchName st
 
 		// Update commit stats
 		commitLog := CommitLog{
-			Hash:        c.Hash.String(),
-			Message:     strings.TrimSpace(c.Message),
-			MessageType: GetMessageType(c.Message),
-			IsMerge:     len(c.ParentHashes) > 1,
-			Date:        c.Author.When,
-			Additions:   additions,
-			Deletions:   deletions,
-			Effectives:  additions - deletions,
-			AuthorName:  c.Author.Name,
-			AuthorEmail: c.Author.Email,
-			Nickname: FindNickname(config, c.Author.Name, c.Author.Email),
+			Hash:          c.Hash.String(),
+			Message:       strings.TrimSpace(c.Message),
+			MessageType:   GetMessageType(c.Message),
+			IsMerge:       len(c.ParentHashes) > 1,
+			Date:          c.Author.When,
+			Additions:     additions,
+			Deletions:     deletions,
+			Effectives:    additions - deletions,
+			AuthorName:    c.Author.Name,
+			AuthorEmail:   c.Author.Email,
+			Nickname:      FindNickname(config, c.Author.Name, c.Author.Email),
+			LanguageStats: string(languageStatsJson),
 		}
 		commitLogs = append(commitLogs, commitLog)
 	}

@@ -3,7 +3,7 @@ package gitinsight
 import (
 	"strings"
 
-	"gopkg.in/src-d/go-git.v4"
+	"github.com/go-git/go-git/v6"
 )
 
 func FindAuth(config *Config, repo *Repo) *Auth {

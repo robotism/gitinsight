@@ -13,13 +13,24 @@ type AppConfig struct {
 
 type Server struct {
 	Address string `mapstructure:"address" description:"address" default:"0.0.0.0:8080"`
+
+	Database Database `mapstructure:"database" group:"database" `
+}
+
+type Database struct {
+	Type string `mapstructure:"type" description:"database type" default:"sqliteshim"`
+	Dsn  string `mapstructure:"dsn" description:"database dsn" default:"./gitinsight.db"`
 }
 
 func Run(config *AppConfig) error {
 	insight := config.Insight
 	server := config.Server
 
-	err := gitinsight.OpenDb()
+	err := gitinsight.OpenDb(server.Database.Type, server.Database.Dsn)
+	if err != nil {
+		return err
+	}
+	err = gitinsight.InitDb()
 	if err != nil {
 		return err
 	}

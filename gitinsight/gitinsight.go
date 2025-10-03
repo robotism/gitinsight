@@ -8,10 +8,10 @@ import (
 	"sort"
 	"strings"
 
-	"gopkg.in/src-d/go-git.v4"
-	"gopkg.in/src-d/go-git.v4/config"
-	"gopkg.in/src-d/go-git.v4/plumbing"
-	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
+	"github.com/go-git/go-git/v6"
+	"github.com/go-git/go-git/v6/config"
+	"github.com/go-git/go-git/v6/plumbing"
+	"github.com/go-git/go-git/v6/plumbing/transport/http"
 )
 
 type Config struct {
@@ -83,7 +83,7 @@ func SyncRepo(config *Config) (map[string][]string, error) {
 		if err != nil {
 			return nil, fmt.Errorf("error getting branches for %s: %v", repoInfo.Url, err)
 		}
-		log.Printf("    ✓ Found %d branches\n", len(branches))
+		log.Printf("    Found %d branches\n", len(branches))
 		repoStats[repoPath] = branches
 	}
 	return repoStats, nil
@@ -107,7 +107,7 @@ func CloneOrUpdateRepo(url, path, username, password string) (*git.Repository, e
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		// Clone the repository with all branches
 		log.Printf("Cloning %s to %s...\n", url, path)
-		repo, err := git.PlainClone(path, false, &git.CloneOptions{
+		repo, err := git.PlainClone(path, &git.CloneOptions{
 			URL:      url,
 			Auth:     auth,
 			Progress: os.Stdout,

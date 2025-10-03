@@ -29,20 +29,21 @@ func AnalyzeBranchCommitLogs(insight *gitinsight.Config, repoPath string, branch
 		commitLogsModels := make([]gitinsight.CommitLogModel, len(commitLogs))
 		for i, commitLog := range commitLogs {
 			commitLogsModels[i] = gitinsight.CommitLogModel{
-				RepoUrl:     repoUrl,
-				RepoPath:    repoPath,
-				BranchName:  branchName,
-				CommitHash:  commitLog.Hash,
-				IsMerge:     commitLog.IsMerge,
-				Message:     commitLog.Message,
-				MessageType: commitLog.MessageType,
-				Date:        commitLog.Date,
-				Additions:   commitLog.Additions,
-				Deletions:   commitLog.Deletions,
-				Effectives:  commitLog.Effectives,
-				AuthorName:  commitLog.AuthorName,
-				AuthorEmail: commitLog.AuthorEmail,
-				Nickname:    commitLog.Nickname,
+				RepoUrl:       repoUrl,
+				RepoPath:      repoPath,
+				BranchName:    branchName,
+				CommitHash:    commitLog.Hash,
+				IsMerge:       commitLog.IsMerge,
+				Message:       commitLog.Message,
+				MessageType:   commitLog.MessageType,
+				Date:          commitLog.Date,
+				Additions:     commitLog.Additions,
+				Deletions:     commitLog.Deletions,
+				Effectives:    commitLog.Effectives,
+				LanguageStats: commitLog.LanguageStats,
+				AuthorName:    commitLog.AuthorName,
+				AuthorEmail:   commitLog.AuthorEmail,
+				Nickname:      commitLog.Nickname,
 			}
 		}
 		_, err = gitinsight.ReplaceCommitLogs(repoPath, branchName, commitLogsModels)
