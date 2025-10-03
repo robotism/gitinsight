@@ -127,15 +127,26 @@ func ReplaceCommitLogs(repoPath string, branchName string, commitLogs []CommitLo
 		if err != nil {
 			return err
 		}
-		result, err := tx.NewInsert().Model(&commitLogs).Exec(ctx)
-		if err != nil {
-			return err
+
+		const commitLogLimit = 1000
+
+		var rowsAffected int64
+		for i := 0; i < len(commitLogs); i += commitLogLimit {
+			end := i + commitLogLimit
+			if end > len(commitLogs) {
+				end = len(commitLogs)
+			}
+			segment := commitLogs[i:end]
+			result, err := gdb.NewInsert().Model(&segment).Exec(ctx)
+			if err != nil {
+				return err
+			}
+			rows, err := result.RowsAffected()
+			if err != nil {
+				return err
+			}
+			rowsAffected += rows
 		}
-		rows, err := result.RowsAffected()
-		if err != nil {
-			return err
-		}
-		rowsAffected += rows
 		return nil
 	})
 	return rowsAffected, nil
@@ -150,15 +161,26 @@ func AddCommitLogs(commitLogs []CommitLogModel) (int64, error) {
 	}
 	ctx := context.Background()
 
-	result, err := gdb.NewInsert().Model(&commitLogs).Exec(ctx)
-	if err != nil {
-		return 0, err
+	const commitLogLimit = 1000
+
+	var rowsAffected int64
+	for i := 0; i < len(commitLogs); i += commitLogLimit {
+		end := i + commitLogLimit
+		if end > len(commitLogs) {
+			end = len(commitLogs)
+		}
+		segment := commitLogs[i:end]
+		result, err := gdb.NewInsert().Model(&segment).Exec(ctx)
+		if err != nil {
+			return 0, err
+		}
+		rows, err := result.RowsAffected()
+		if err != nil {
+			return 0, err
+		}
+		rowsAffected += rows
 	}
-	rows, err := result.RowsAffected()
-	if err != nil {
-		return 0, err
-	}
-	return rows, nil
+	return rowsAffected, nil
 }
 
 func CountCommitLogs(filter *CommitLogFilter) (int, error) {

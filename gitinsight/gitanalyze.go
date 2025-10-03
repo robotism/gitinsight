@@ -1,6 +1,7 @@
 package gitinsight
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -35,16 +36,30 @@ func GetLatestCommitState(repoPath string, branchName string) (*BranchState, err
 	if err != nil {
 		return nil, err
 	}
+
+	// Try local branch first
 	branchRef, err := repo.Reference(plumbing.ReferenceName("refs/heads/"+branchName), true)
 	if err != nil {
-		return nil, err
+		// If local branch does not exist, try remote branch
+		branchRef, err = repo.Reference(plumbing.ReferenceName("refs/remotes/origin/"+branchName), true)
+		if err != nil {
+			return nil, fmt.Errorf("could not get branch reference: %v", err)
+		}
+	}
+	hash, err := repo.ResolveRevision(plumbing.Revision(branchRef.Name().String()))
+	if err != nil {
+		return nil, errors.Join(err, fmt.Errorf("could not resolve revision: %s", branchName))
+	}
+	commit, err := repo.CommitObject(*hash)
+	if err != nil {
+		return nil, errors.Join(err, fmt.Errorf("could not get commit object: %s", branchName))
 	}
 	count := 0
-	cIter, err := repo.Log(&git.LogOptions{From: branchRef.Hash()})
+	cIter, err := repo.Log(&git.LogOptions{From: commit.Hash})
 	if err != nil {
-		return nil, err
+		return nil, errors.Join(err, fmt.Errorf("could not get commit log: %s", branchName))
 	}
-	hash := ""
+	hashcode := ""
 	for {
 		c, err := cIter.Next()
 		if err == io.EOF {
@@ -53,13 +68,13 @@ func GetLatestCommitState(repoPath string, branchName string) (*BranchState, err
 		if err != nil {
 			return nil, err
 		}
-		if hash == "" {
-			hash = c.Hash.String()
+		if hashcode == "" {
+			hashcode = c.Hash.String()
 		}
 		count++
 	}
 	return &BranchState{
-		LatestCommitHash: hash,
+		LatestCommitHash: hashcode,
 		CommitLogsCount:  count,
 	}, nil
 }
