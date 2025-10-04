@@ -71,8 +71,47 @@ func extractLetters(s string) string {
 	}
 	return string(result)
 }
+func GetLanguageStatPatch(c *object.Commit) map[string]int {
+    languageStats := make(map[string]int)
 
-func GetLanguageStats(c *object.Commit) map[string]int {
+    // 如果有 parent，拿 diff
+    if c.NumParents() > 0 {
+        parent, err := c.Parent(0)
+        if err != nil {
+            return languageStats
+        }
+
+        patch, err := parent.Patch(c)
+        if err != nil {
+            return languageStats
+        }
+
+        for _, fileStat := range patch.FilePatches() {
+            from, to := fileStat.Files()
+            var filename string
+            if to != nil {
+                filename = to.Path()
+            } else if from != nil {
+                filename = from.Path()
+            }
+
+            ext := filepath.Ext(filename)
+            languageStats[ext]++
+        }
+    } else {
+        // 第一个 commit，没有 parent，就遍历所有文件
+        fIter, _ := c.Files()
+        fIter.ForEach(func(f *object.File) error {
+            ext := filepath.Ext(f.Name)
+            languageStats[ext]++
+            return nil
+        })
+    }
+
+    return languageStats
+}
+
+func GetLanguageStatsALl(c *object.Commit) map[string]int {
 	languageStats := make(map[string]int)
 	f, err := c.Files()
 	if err != nil {

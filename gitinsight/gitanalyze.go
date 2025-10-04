@@ -139,7 +139,7 @@ func AnalyzeBranchCommitLogs(config *Config, repo *git.Repository, branchName st
 
 		nickname := FindNickname(config, c.Author.Name, c.Author.Email)
 		additions, deletions := GetCommitDiff(c)
-		languageStats := GetLanguageStats(c)
+		languageStats := GetLanguageStatPatch(c)
 		languageStatsJson, _ := json.MarshalIndent(languageStats, "", "  ")
 		// Update commit stats
 		commitLog := CommitLog{
