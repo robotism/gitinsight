@@ -60,8 +60,7 @@ var configGenCmd = &cobra.Command{
 				Cache: gitinsight.Cache{
 					Path: "./.repos",
 				},
-				Parallel: true,
-				Interval: "5m",
+				Interval: "60m",
 			},
 		}
 		fmt := filepath.Ext(genConfig.File)

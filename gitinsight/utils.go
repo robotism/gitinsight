@@ -1,9 +1,12 @@
 package gitinsight
 
 import (
+	"io"
+	"path/filepath"
 	"strings"
 
 	"github.com/go-git/go-git/v6"
+	"github.com/go-git/go-git/v6/plumbing/object"
 )
 
 func FindAuth(config *Config, repo *Repo) *Auth {
@@ -67,4 +70,67 @@ func extractLetters(s string) string {
 		}
 	}
 	return string(result)
+}
+
+func GetLanguageStats(c *object.Commit) map[string]int {
+	languageStats := make(map[string]int)
+	f, err := c.Files()
+	if err != nil {
+		return languageStats
+	}
+	f.ForEach(func(f *object.File) error {
+		if f == nil {
+			return nil
+		}
+		languageStats[filepath.Ext(f.Name)]++
+		return nil
+	})
+	return languageStats
+}
+
+func GetCommitDiff(c *object.Commit) (int, int) {
+
+	// Get diff stats
+	additions, deletions := 0, 0
+	// var fileStats object.FileStats
+	// if c.NumParents() > 0 {
+	// 	parent, err := c.Parents().Next()
+	// 	if err == nil {
+	// 		parentTree, _ := parent.Tree()
+	// 		commitTree, _ := c.Tree()
+	// 		changes, _ := object.DiffTree(parentTree, commitTree)
+	// 		patch, _ := changes.Patch()
+	// 		if patch != nil {
+	// 			fileStats = patch.Stats()
+	// 		}
+	// 	}
+	// }
+	// for _, stat := range fileStats {
+	// 	additions += stat.Addition
+	// 	deletions += stat.Deletion
+	// }
+	if c.NumParents() > 0 {
+		parentIter := c.Parents()
+		for {
+			parent, err := parentIter.Next()
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				break
+			}
+			parentTree, _ := parent.Tree()
+			commitTree, _ := c.Tree()
+			changes, _ := object.DiffTree(parentTree, commitTree)
+			patch, _ := changes.Patch()
+			if patch != nil {
+				stats := patch.Stats()
+				for _, stat := range stats {
+					additions += stat.Addition
+					deletions += stat.Deletion
+				}
+			}
+		}
+	}
+	return additions, deletions
 }

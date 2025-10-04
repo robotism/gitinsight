@@ -55,25 +55,20 @@ func ProcessCrond(insight *gitinsight.Config) {
 
 	log.Printf("⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳  Analyze by cron start ⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳\n")
 	for repoPath, branchNames := range repos {
-		if !insight.Parallel {
-			err := HandleBranchCommitLogs(insight, repoPath, branchNames)
-			if err != nil {
-				log.Printf("❌ Error analyzing repository %s: %v\n", repoPath, err)
-			}
-			continue
+		for _, branchName := range branchNames {
+			pool.Add(func(ctx context.Context) error {
+				handleStart := time.Now()
+				err := HandleBranchCommitLogs(insight, repoPath, branchName)
+				if err != nil {
+					log.Printf("❌ Error analyzing repository %s: %v\n", repoPath, err)
+				}
+				handleStop := time.Now()
+				handleCost := handleStop.Sub(handleStart)
+				log.Printf("⏰⏰⏰⏰⏰⏰  Handled %s %s cost %v ⏰⏰⏰⏰⏰⏰\n", repoPath, branchName, handleCost)
+				log.Printf("✅✅✅✅✅✅  Handled %s %s done ✅✅✅✅✅✅\n", repoPath, branchName)
+				return nil
+			})
 		}
-		pool.Add(func(ctx context.Context) error {
-			handleStart := time.Now()
-			err := HandleBranchCommitLogs(insight, repoPath, branchNames)
-			if err != nil {
-				log.Printf("❌ Error analyzing repository %s: %v\n", repoPath, err)
-			}
-			handleStop := time.Now()
-			handleCost := handleStop.Sub(handleStart)
-			log.Printf("⏰⏰⏰⏰⏰⏰  Handled %s %s cost %v ⏰⏰⏰⏰⏰⏰\n", repoPath, branchNames, handleCost)
-			log.Printf("✅✅✅✅✅✅  Handled %s %s done ✅✅✅✅✅✅\n", repoPath, branchNames)
-			return nil
-		})
 	}
 	pool.Wait()
 	timeStop := time.Now()

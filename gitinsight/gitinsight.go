@@ -19,7 +19,6 @@ type Config struct {
 	Repos    []Repo   `mapstructure:"repos" description:"repos"`
 	Authors  []Author `mapstructure:"authors" description:"authors"`
 	Cache    Cache    `mapstructure:"cache" description:"cache"`
-	Parallel bool     `mapstructure:"parallel" description:"parallel" default:"false"`
 	Interval string   `mapstructure:"interval" description:"interval" default:"60m"`
 }
 

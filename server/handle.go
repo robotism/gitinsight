@@ -6,9 +6,9 @@ import (
 	"github.com/robotism/gitinsight/gitinsight"
 )
 
-func HandleBranchCommitLogs(insight *gitinsight.Config, repoPath string, branchNames []string) error {
+func HandleBranchCommitLogs(insight *gitinsight.Config, repoPath string, branchName string) error {
 	repoUrl := gitinsight.GetRepoRemoteUrl(repoPath)
-	repoStats, err := gitinsight.AnalyzeRepoCommitLogs(insight, repoPath, branchNames)
+	repoStats, err := gitinsight.AnalyzeRepoCommitLogs(insight, repoPath, []string{branchName})
 	if err != nil {
 		log.Printf("❌ Error analyzing repository %s: %v\n", repoPath, err)
 		return err

@@ -1,15 +1,16 @@
 package gitinsight
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"log"
-	"path/filepath"
 	"strings"
 	"time"
 
+	"github.com/chaos-plus/chaos-plus-toolx/xgrpool"
 	"github.com/go-git/go-git/v6"
 	"github.com/go-git/go-git/v6/plumbing"
 	"github.com/go-git/go-git/v6/plumbing/object"
@@ -56,7 +57,6 @@ func GetLatestCommitState(repoPath string, branchName string) (*BranchState, err
 	// Get the commit history
 	cIter, err := repo.Log(&git.LogOptions{
 		From: branchRef.Hash(),
-		All:  true, // 遍历所有提交，不仅仅是单条链
 	})
 	if err != nil {
 		return nil, errors.Join(err, fmt.Errorf("could not get commit log: %s", branchName))
@@ -87,19 +87,25 @@ func AnalyzeRepoCommitLogs(config *Config, repoPath string, branchNames []string
 		return nil, err
 	}
 	repoStats := make(map[string][]CommitLog)
-
+	pool := xgrpool.New()
 	for _, name := range branchNames {
-		log.Printf("🚀  Analyzing branch commit logs: %s %s\n", repoPath, name)
-		// Get branch stats
-		commitLogs, err := AnalyzeBranchCommitLogs(config, repo, name)
-		if err != nil {
+		pool.AddWithRecover(func(ctx context.Context) error {
+			// Get branch stats
+			log.Printf("🚀  Analyzing branch commit logs: %s %s\n", repoPath, name)
+			commitLogs, err := AnalyzeBranchCommitLogs(config, repo, name)
+			if err != nil {
+				log.Printf("  ⚠️ Error analyzing branch commit logs %s: %v\n", name, err)
+				return err
+			}
+			log.Printf("    Found %s %s %d commits\n", repoPath, name, len(commitLogs))
+			repoStats[name] = commitLogs
+			return nil
+		}, func(ctx context.Context, err interface{}) {
 			log.Printf("  ⚠️ Error analyzing branch commit logs %s: %v\n", name, err)
-			continue
-		}
-		log.Printf("    Found %s %s %d commits\n", repoPath, name, len(commitLogs))
-		repoStats[name] = commitLogs
+			panic(err)
+		})
 	}
-
+	pool.Wait()
 	return repoStats, nil
 }
 
@@ -121,7 +127,6 @@ func AnalyzeBranchCommitLogs(config *Config, repo *git.Repository, branchName st
 	// Get the commit history
 	cIter, err := repo.Log(&git.LogOptions{
 		From: branchRef.Hash(),
-		All:  true, // 遍历所有提交，不仅仅是单条链
 	})
 
 	if err != nil {
@@ -131,57 +136,11 @@ func AnalyzeBranchCommitLogs(config *Config, repo *git.Repository, branchName st
 	commitLogs := make([]CommitLog, 0)
 
 	cIter.ForEach(func(c *object.Commit) error {
-		// Get diff stats
-		additions, deletions := 0, 0
-		// var fileStats object.FileStats
-		// if c.NumParents() > 0 {
-		// 	parent, err := c.Parents().Next()
-		// 	if err == nil {
-		// 		parentTree, _ := parent.Tree()
-		// 		commitTree, _ := c.Tree()
-		// 		changes, _ := object.DiffTree(parentTree, commitTree)
-		// 		patch, _ := changes.Patch()
-		// 		if patch != nil {
-		// 			fileStats = patch.Stats()
-		// 		}
-		// 	}
-		// }
-		// for _, stat := range fileStats {
-		// 	additions += stat.Addition
-		// 	deletions += stat.Deletion
-		// }
-		if c.NumParents() > 0 {
-			parentIter := c.Parents()
-			for {
-				parent, err := parentIter.Next()
-				if err == io.EOF {
-					break
-				}
-				if err != nil {
-					break
-				}
-				parentTree, _ := parent.Tree()
-				commitTree, _ := c.Tree()
-				changes, _ := object.DiffTree(parentTree, commitTree)
-				patch, _ := changes.Patch()
-				if patch != nil {
-					stats := patch.Stats()
-					for _, stat := range stats {
-						additions += stat.Addition
-						deletions += stat.Deletion
-					}
-				}
-			}
-		}
 
-		languageStats := make(map[string]int)
-		f, _ := c.Files()
-		f.ForEach(func(f *object.File) error {
-			languageStats[filepath.Ext(f.Name)]++
-			return nil
-		})
-		languageStatsJson, _ := json.MarshalIndent(languageStats, "", "  ")
 		nickname := FindNickname(config, c.Author.Name, c.Author.Email)
+		additions, deletions := GetCommitDiff(c)
+		languageStats := GetLanguageStats(c)
+		languageStatsJson, _ := json.MarshalIndent(languageStats, "", "  ")
 		// Update commit stats
 		commitLog := CommitLog{
 			Hash:          c.Hash.String(),
@@ -198,7 +157,8 @@ func AnalyzeBranchCommitLogs(config *Config, repo *git.Repository, branchName st
 			LanguageStats: string(languageStatsJson),
 		}
 		commitLogs = append(commitLogs, commitLog)
-		log.Printf("    ⏳  Analyzed commit logs: %s %s %s %s %s %s %s\n", branchName, c.Hash.String(), nickname, c.Author.Name, c.Author.Email, c.Author.When, c.Message)
+		log.Printf("    🏷️  Analyzed commit logs: %s %s %s %s %s %s %s\n", branchName, c.Hash.String(), nickname, c.Author.Name, c.Author.Email, c.Author.When, c.Message)
+
 		return nil
 	})
 
