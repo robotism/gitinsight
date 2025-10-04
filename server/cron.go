@@ -30,7 +30,6 @@ func StopCrond() {
 
 func OnCrond(insight *gitinsight.Config) {
 	if syncing {
-		log.Printf("🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒  Sync by cron skip 🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒\n")
 		return
 	}
 	syncing = true
@@ -38,8 +37,6 @@ func OnCrond(insight *gitinsight.Config) {
 		syncing = false
 	}()
 	ProcessCrond(insight)
-	log.Printf("🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒  Sync by cron done 🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒\n")
-	panic("sync by cron done")
 }
 
 func ProcessCrond(insight *gitinsight.Config) {

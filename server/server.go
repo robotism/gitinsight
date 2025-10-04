@@ -32,6 +32,11 @@ func Run(config *AppConfig) error {
 	if err != nil {
 		return err
 	}
+	if insight.Reset {
+		gitinsight.ResetDb()
+		gitinsight.ResetRepo(&insight)
+	}
+
 	err = gitinsight.InitDb()
 	if err != nil {
 		return err

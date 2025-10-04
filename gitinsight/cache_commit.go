@@ -3,6 +3,7 @@ package gitinsight
 import (
 	"context"
 	"errors"
+	"log"
 	"strings"
 	"time"
 
@@ -256,4 +257,17 @@ func DelCommitLog(filter *CommitLogFilter) (int64, error) {
 		return 0, err
 	}
 	return rowsAffected, nil
+}
+
+func ResetCommit() error {
+	if gdb == nil {
+		return errors.New("database not initialized")
+	}
+	ctx := context.Background()
+	_, err := gdb.NewDelete().Model(&CommitLogModel{}).Exec(ctx)
+	if err != nil {
+		return err
+	}
+	log.Println("Reset commit log")
+	return nil
 }

@@ -13,6 +13,13 @@ import (
 
 var gdb *bun.DB
 
+func ResetDb() error {
+	err := ResetCommit()
+	if err != nil {
+		return err
+	}
+	return nil
+}
 func InitDb() error {
 	err := InitCommit()
 	if err != nil {

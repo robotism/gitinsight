@@ -18,6 +18,7 @@ type Config struct {
 	Auths    []Auth   `mapstructure:"auths" description:"auths"`
 	Repos    []Repo   `mapstructure:"repos" description:"repos"`
 	Authors  []Author `mapstructure:"authors" description:"authors"`
+	Reset    bool     `mapstructure:"reset" description:"reset" default:"false"`
 	Cache    Cache    `mapstructure:"cache" description:"cache"`
 	Interval string   `mapstructure:"interval" description:"interval" default:"60m"`
 }
@@ -42,6 +43,15 @@ type Author struct {
 	Name     string `mapstructure:"name" description:"name"`
 	Email    string `mapstructure:"email" description:"email"`
 	Nickname string `mapstructure:"nickname" description:"nickname"`
+}
+
+func ResetRepo(config *Config) error {
+	err := os.RemoveAll(config.Cache.Path)
+	if err != nil {
+		return err
+	}
+	log.Println("Reset repository cache: " + config.Cache.Path)
+	return nil
 }
 
 func SyncRepo(config *Config) (map[string][]string, error) {
