@@ -52,16 +52,12 @@ func GetLatestCommitState(repoPath string, branchName string) (*BranchState, err
 			return nil, fmt.Errorf("could not get branch reference: %v", err)
 		}
 	}
-	hash, err := repo.ResolveRevision(plumbing.Revision(branchRef.Name().String()))
-	if err != nil {
-		return nil, errors.Join(err, fmt.Errorf("could not resolve revision: %s", branchName))
-	}
-	commit, err := repo.CommitObject(*hash)
-	if err != nil {
-		return nil, errors.Join(err, fmt.Errorf("could not get commit object: %s", branchName))
-	}
 	count := 0
-	cIter, err := repo.Log(&git.LogOptions{From: commit.Hash})
+	// Get the commit history
+	cIter, err := repo.Log(&git.LogOptions{
+		From: branchRef.Hash(),
+		All:  true, // 遍历所有提交，不仅仅是单条链
+	})
 	if err != nil {
 		return nil, errors.Join(err, fmt.Errorf("could not get commit log: %s", branchName))
 	}
@@ -93,14 +89,14 @@ func AnalyzeRepoCommitLogs(config *Config, repoPath string, branchNames []string
 	repoStats := make(map[string][]CommitLog)
 
 	for _, name := range branchNames {
-		log.Printf("🚀  Analyzing branch: %s %s\n", repoPath, name)
+		log.Printf("🚀  Analyzing branch commit logs: %s %s\n", repoPath, name)
 		// Get branch stats
 		commitLogs, err := AnalyzeBranchCommitLogs(config, repo, name)
 		if err != nil {
-			log.Printf("  ⚠️ Error analyzing branch %s: %v\n", name, err)
+			log.Printf("  ⚠️ Error analyzing branch commit logs %s: %v\n", name, err)
 			continue
 		}
-		log.Printf("    Found %d commits\n", len(commitLogs))
+		log.Printf("    Found %s %s %d commits\n", repoPath, name, len(commitLogs))
 		repoStats[name] = commitLogs
 	}
 
@@ -184,7 +180,7 @@ func AnalyzeBranchCommitLogs(config *Config, repo *git.Repository, branchName st
 			languageStats[filepath.Ext(f.Name)]++
 			return nil
 		})
-		languageStatsJson, _ := json.Marshal(languageStats)
+		languageStatsJson, _ := json.MarshalIndent(languageStats, "", "  ")
 
 		// Update commit stats
 		commitLog := CommitLog{

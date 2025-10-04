@@ -1,8 +1,10 @@
 package server
 
 import (
+	"context"
 	"log"
 
+	"github.com/chaos-plus/chaos-plus-toolx/xgrpool"
 	"github.com/robfig/cron"
 	"github.com/robotism/gitinsight/gitinsight"
 )
@@ -11,17 +13,12 @@ var crond *cron.Cron
 var syncing bool
 
 func StartCrond(insight *gitinsight.Config) {
-	go ProcessCrond(insight)
+	go func() {
+		OnCrond(insight)
+	}()
 	crond = cron.New()
 	crond.AddFunc("@every "+insight.Interval, func() {
-		if syncing {
-			return
-		}
-		syncing = true
-		defer func() {
-			syncing = false
-		}()
-		ProcessCrond(insight)
+		OnCrond(insight)
 	})
 	crond.Start()
 }
@@ -30,26 +27,46 @@ func StopCrond() {
 	crond.Stop()
 }
 
+func OnCrond(insight *gitinsight.Config) {
+	if syncing {
+		log.Printf("🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒  Sync by cron skip 🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒\n")
+		return
+	}
+	syncing = true
+	defer func() {
+		syncing = false
+	}()
+	ProcessCrond(insight)
+	log.Printf("🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒  Sync by cron done 🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒\n")
+}
+
 func ProcessCrond(insight *gitinsight.Config) {
+	log.Printf("⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳  Sync by cron start ⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳\n")
 	repos, err := gitinsight.SyncRepo(insight)
 	if err != nil {
 		log.Printf("❌ Error syncing repository: %v\n", err)
 		return
 	}
 
+	pool := xgrpool.New()
+
+	log.Printf("⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳  Analyze by cron start ⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳\n")
 	for repoPath, branchNames := range repos {
 		if !insight.Parallel {
-			err := AnalyzeBranchCommitLogs(insight, repoPath, branchNames)
+			err := HandleBranchCommitLogs(insight, repoPath, branchNames)
 			if err != nil {
 				log.Printf("❌ Error analyzing repository %s: %v\n", repoPath, err)
 			}
-		} else {
-			go func() {
-				err := AnalyzeBranchCommitLogs(insight, repoPath, branchNames)
-				if err != nil {
-					log.Printf("❌ Error analyzing repository %s: %v\n", repoPath, err)
-				}
-			}()
+			continue
 		}
+		pool.Add(func(ctx context.Context) error {
+			err := HandleBranchCommitLogs(insight, repoPath, branchNames)
+			if err != nil {
+				log.Printf("❌ Error analyzing repository %s: %v\n", repoPath, err)
+			}
+			return nil
+		})
 	}
+	pool.Wait()
+	log.Printf("✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅  Analyzed by cron done ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅\n")
 }

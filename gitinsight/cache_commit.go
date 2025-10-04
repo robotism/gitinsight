@@ -15,7 +15,7 @@ import (
 
 // User model
 type CommitLogModel struct {
-	bun.BaseModel `bun:"table:commit_logs,alias:cl"`
+	bun.BaseModel `bun:"table:commit_log,alias:cl"`
 
 	ID      int64  `bun:"id,pk,autoincrement"`
 	RepoUrl string `bun:",notnull"`

@@ -5,6 +5,7 @@ go 1.24.0
 toolchain go1.24.7
 
 require (
+	github.com/chaos-plus/chaos-plus-toolx v1.0.7
 	github.com/gin-gonic/gin v1.11.0
 	github.com/go-git/go-git/v6 v6.0.0-20250929195514-145daf2492dd
 	github.com/go-sql-driver/mysql v1.9.3
