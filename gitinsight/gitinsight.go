@@ -20,7 +20,7 @@ type Config struct {
 	Authors  []Author `mapstructure:"authors" description:"authors"`
 	Cache    Cache    `mapstructure:"cache" description:"cache"`
 	Parallel bool     `mapstructure:"parallel" description:"parallel" default:"false"`
-	Interval string   `mapstructure:"interval" description:"interval" default:"5m"`
+	Interval string   `mapstructure:"interval" description:"interval" default:"60m"`
 }
 
 type Auth struct {

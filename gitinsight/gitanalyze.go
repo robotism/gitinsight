@@ -181,7 +181,7 @@ func AnalyzeBranchCommitLogs(config *Config, repo *git.Repository, branchName st
 			return nil
 		})
 		languageStatsJson, _ := json.MarshalIndent(languageStats, "", "  ")
-
+		nickname := FindNickname(config, c.Author.Name, c.Author.Email)
 		// Update commit stats
 		commitLog := CommitLog{
 			Hash:          c.Hash.String(),
@@ -194,10 +194,11 @@ func AnalyzeBranchCommitLogs(config *Config, repo *git.Repository, branchName st
 			Effectives:    additions - deletions,
 			AuthorName:    c.Author.Name,
 			AuthorEmail:   c.Author.Email,
-			Nickname:      FindNickname(config, c.Author.Name, c.Author.Email),
+			Nickname:      nickname,
 			LanguageStats: string(languageStatsJson),
 		}
 		commitLogs = append(commitLogs, commitLog)
+		log.Printf("    ⏳  Analyzed commit logs: %s %s %s %s %s %s %s\n", branchName, c.Hash.String(), nickname, c.Author.Name, c.Author.Email, c.Author.When, c.Message)
 		return nil
 	})
 

@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"log"
+	"time"
 
 	"github.com/chaos-plus/chaos-plus-toolx/xgrpool"
 	"github.com/robfig/cron"
@@ -38,10 +39,12 @@ func OnCrond(insight *gitinsight.Config) {
 	}()
 	ProcessCrond(insight)
 	log.Printf("🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒  Sync by cron done 🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒🔒\n")
+	panic("sync by cron done")
 }
 
 func ProcessCrond(insight *gitinsight.Config) {
 	log.Printf("⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳  Sync by cron start ⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳\n")
+	timeStart := time.Now()
 	repos, err := gitinsight.SyncRepo(insight)
 	if err != nil {
 		log.Printf("❌ Error syncing repository: %v\n", err)
@@ -60,13 +63,21 @@ func ProcessCrond(insight *gitinsight.Config) {
 			continue
 		}
 		pool.Add(func(ctx context.Context) error {
+			handleStart := time.Now()
 			err := HandleBranchCommitLogs(insight, repoPath, branchNames)
 			if err != nil {
 				log.Printf("❌ Error analyzing repository %s: %v\n", repoPath, err)
 			}
+			handleStop := time.Now()
+			handleCost := handleStop.Sub(handleStart)
+			log.Printf("⏰⏰⏰⏰⏰⏰  Handled %s %s cost %v ⏰⏰⏰⏰⏰⏰\n", repoPath, branchNames, handleCost)
+			log.Printf("✅✅✅✅✅✅  Handled %s %s done ✅✅✅✅✅✅\n", repoPath, branchNames)
 			return nil
 		})
 	}
 	pool.Wait()
+	timeStop := time.Now()
+	timeCost := timeStop.Sub(timeStart)
+	log.Printf("⏰⏰⏰⏰⏰⏰⏰⏰⏰⏰⏰⏰⏰⏰⏰⏰⏰⏰  Analyzed by cron cost %v ⏰⏰⏰⏰⏰⏰⏰⏰⏰⏰⏰⏰⏰⏰⏰⏰⏰⏰\n", timeCost)
 	log.Printf("✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅  Analyzed by cron done ✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅\n")
 }
