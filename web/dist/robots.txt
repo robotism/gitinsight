@@ -1,0 +1,8 @@
+# START nuxt-robots (indexable)
+User-agent: *
+Allow: /
+Allow: /en/
+Allow: /zh/
+
+Sitemap: http://git-insight.com/sitemap_index.xml
+# END nuxt-robots

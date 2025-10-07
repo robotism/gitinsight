@@ -1,0 +1,1 @@
+import{k as a,g as o,c as r,o as n,a as l,t as e,l as c}from"#entry";const p={class:"flex h-full w-full items-center justify-center"},f=a({__name:"AppFooter",setup(i){const t=o(()=>new Date().getFullYear());return(s,u)=>(n(),r("div",p,[l("span",null," Copyright © "+e(c(t))+" "+e(s.$env.site.host)+" All rights reserved. ",1)]))}});export{f as _};
