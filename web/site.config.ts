@@ -16,7 +16,7 @@ const env = (() => {
     }, {});
 })();
 
-const CNAME = fs.readFileSync("CNAME", "utf8") || env?.CNAME || "localhost";
+const CNAME = fs.readFileSync("CNAME", "utf8") || env?.CNAME;
 
 export default {
   site: {

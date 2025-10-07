@@ -1,6 +1,6 @@
 <template>
   <div class="flex h-full w-full items-center justify-center">
-    <span>
+    <span v-if="$env.site.host">
       Copyright © {{ year }} {{ $env.site.host }} All rights reserved.
     </span>
   </div>
