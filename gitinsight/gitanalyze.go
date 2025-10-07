@@ -1,6 +1,8 @@
 package gitinsight
 
 import (
+	"bufio"
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -14,6 +16,7 @@ import (
 	"github.com/chaos-plus/chaos-plus-toolx/xgrpool"
 	"github.com/go-git/go-git/v6"
 	"github.com/go-git/go-git/v6/plumbing"
+	"github.com/go-git/go-git/v6/plumbing/object"
 )
 
 type CommitLog struct {
@@ -154,7 +157,14 @@ func AnalyzeBranchCommitLogs(config *Config, repo *git.Repository, branchName st
 		if nickname == "" {
 			nickname = c.Author.Name
 		}
-		additions, deletions := GetCommitDiff(c)
+		var additions, deletions int
+		if len(c.ParentHashes) == 0 {
+			// 初始提交
+			additions, deletions, _ = CountLinesInCommit(c)
+		} else {
+			additions, deletions = GetCommitDiff(c)
+		}
+
 		languageStats := GetLanguageStatPatch(c)
 		languageStatsJson, _ := json.MarshalIndent(languageStats, "", "  ")
 		commitLog := CommitLog{
@@ -176,4 +186,33 @@ func AnalyzeBranchCommitLogs(config *Config, repo *git.Repository, branchName st
 	}
 
 	return commitLogs, nil
+}
+
+// CountLinesInCommit 统计提交中所有文件的行数
+func CountLinesInCommit(commit *object.Commit) (additions int, deletions int, err error) {
+	additions = 0
+	deletions = 0
+
+	tree, err := commit.Tree()
+	if err != nil {
+		return 0, 0, err
+	}
+
+	err = tree.Files().ForEach(func(f *object.File) error {
+		content, err := f.Contents()
+		if err != nil {
+			return err
+		}
+
+		// 用 bufio.Scanner 逐行统计
+		scanner := bufio.NewScanner(bytes.NewReader([]byte(content)))
+		count := 0
+		for scanner.Scan() {
+			count++
+		}
+		additions += count // 初始提交全部算作新增
+		return scanner.Err()
+	})
+
+	return additions, deletions, err
 }

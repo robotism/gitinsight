@@ -68,7 +68,7 @@ func Run(config *AppConfig) error {
 
 	log.Printf("load config: %v\n", config)
 
-	// StartCrond(&insight)
+	StartCrond(&insight)
 
 	if config.Debug {
 		gin.SetMode(gin.DebugMode)
