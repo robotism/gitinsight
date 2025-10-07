@@ -35,6 +35,6 @@ jobs:
           files: |
             bin/gitinsight-darwin-amd64*
             bin/gitinsight-linux-amd64*
-            bin/gitinsight-windows-amd64.exe*
+            bin/gitinsight-windows-amd64-*.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
