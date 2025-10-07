@@ -1,38 +1,40 @@
-name: Build & Release
+name: Build & Release Binaries
 
 on:
   push:
     tags:
-      - 'v*'
+      - 'v*'  # 当你 push tag (如 v1.0.0) 时触发
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
-          go-version: '1.21'
+          go-version: '1.24'
+
+      - name: Download Go modules
+        run: go mod download
 
       - name: Build binaries
         run: go run build.go
 
-      - name: Create Release
-        id: release
+      - name: Upload binaries to Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ github.ref_name }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload binaries
-        uses: softprops/action-gh-release@v1
-        with:
+          name: "GitInsight Release ${{ github.ref_name }}"
+          body: |
+            🚀 Automated build for tag ${{ github.ref_name }}
+            🕒 Build time: ${{ github.event.head_commit.timestamp }}
           files: |
-            gitinsight-darwin-amd64
-            gitinsight-linux-amd64
-            gitinsight-windows-amd64.exe
+            bin/gitinsight-darwin-amd64*
+            bin/gitinsight-linux-amd64*
+            bin/gitinsight-windows-amd64.exe*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
