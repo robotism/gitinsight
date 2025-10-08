@@ -1,5 +1,5 @@
 <template>
-  <div class="q-pa-md">
+  <div class="mb-4">
     <q-table dense v-if="rows?.length > 0" :title="i18n.t('contributors')" color="primary" :rows="rows" :columns="columns"
       v-model:pagination="pagination" hide-pagination row-key="nickname">
       <template v-slot:header="props">

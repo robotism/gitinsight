@@ -1,12 +1,12 @@
 <template>
-    <div>
-        <h6 class="ml-2">{{ $t("conditionFilter") }}</h6>
+    <div class="w-full flex-col content-center">
+        <h6 class="w-full content-center">{{ $t("conditionFilter") }}</h6>
 
-        <div class="flex flex-col">
+        <div class="w-full flex flex-col">
             <q-list bordered class="rounded-borders">
-                <q-expansion-item dense expand-separator default-opened icon="📅" :label="$t('timeRange')">
+                <q-expansion-item  class="w-full group1" expand-separator default-opened icon="📅" :label="$t('timeRange')">
                     <q-card class="w-full pl-2">
-                        <q-btn-dropdown class="w-[240px] m-4" :label="timeSelection?.label">
+                        <q-btn-dropdown  flat class="w-[240px] m-4" :label="timeSelection?.label">
                             <q-list>
                                 <q-item v-for="(item, key) in timeOptions" :key="key" clickable v-close-popup
                                     @click="timeSelection = item">
@@ -19,8 +19,8 @@
                     </q-card>
                 </q-expansion-item>
 
-                <q-expansion-item class="w-full" dense expand-separator default-opened icon="🌿" :label="$t('repos')">
-                    <q-card class="w-full pl-2">
+                <q-expansion-item class="w-full group1" dense expand-separator default-opened icon="🌿" :label="$t('repos')">
+                    <q-card class="w-full pl-2 pb-2">
                         <q-option-group class="w-full" dense v-model="repoSelections" :options="repoOptions"
                             color="green" type="checkbox">
                             <template v-slot:label="opt">
@@ -30,9 +30,9 @@
                     </q-card>
                 </q-expansion-item>
 
-                <q-expansion-item class="w-full" dense expand-separator default-opened icon="👥"
+                <q-expansion-item class="w-full group3" dense expand-separator default-opened icon="👥"
                     :label="$t('contributors')" header-class="text-purple">
-                    <q-card class="w-full pl-2">
+                    <q-card class="w-full pl-2 pb-2">
                         <q-option-group class="w-full" dense v-model="authorSelections" :options="authorOptions"
                             color="purple" type="checkbox">
                             <template v-slot:label="opt">
@@ -295,5 +295,10 @@ onMounted(() => {
 :deep(.q-item__section--side > .q-icon) {
     font-size: 14px;
     margin-bottom: 4px;
+}
+
+:deep(.group3 .q-option-group){
+    display: flex;
+
 }
 </style>

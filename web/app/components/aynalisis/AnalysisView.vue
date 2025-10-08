@@ -1,27 +1,29 @@
 <template>
-    <div class="overflow-y-scroll h-[calc(100vh-120px)]">
-        <h6 class="ml-2">{{ $t('analysisView') }}</h6>
 
-        <!-- 贡献者 -->
-        <AuthorRanking :authors="authors" :since="since" sortBy="effectives" sortDirection="desc" />
+    <div class="w-full pl-4 pr-4 flex-col ">
+        <h6 class="w-full content-center">{{ $t('analysisView') }}</h6>
+        <div class="w-full h-[calc(100vh-130px)] overflow-y-scroll">
+            <!-- 贡献者 -->
+            <AuthorRanking :authors="authors" :since="since" sortBy="effectives" sortDirection="desc" />
 
-        <!-- 提交频率图-->
-        <PeriodCard :commits="commitsPeriodDay" :year="since" :title="$t('commitPeriod')" />
-        
-        <!-- 提交频率图-->
-        <PeriodCard :commits="commitsPeriodWeek" :year="since" :title="$t('commitPeriod')" />
+            <!-- 提交频率图-->
+            <PeriodCard :commits="commitsPeriodDay" :year="since" :title="$t('commitPeriod')" />
 
-        <!-- Commit 活跃图 -->
-        <HeatMapCard :commits="commitsAll" :year="since" :title="$t('commitHeatmap')" />
+            <!-- 提交频率图-->
+            <PeriodCard :commits="commitsPeriodWeek" :year="since" :title="$t('commitPeriod')" />
 
-        <!-- Fix 活跃图 -->
-        <HeatMapCard :commits="commitsFix" :year="since" :title="$t('fixHeatmap')" />
+            <!-- Commit 活跃图 -->
+            <HeatMapCard :commits="commitsAll" :year="since" :title="$t('commitHeatmap')" />
 
-        <!-- Feat 活跃图 -->
-        <HeatMapCard :commits="commitsFeat" :year="since" :title="$t('featHeatmap')" />
+            <!-- Fix 活跃图 -->
+            <HeatMapCard :commits="commitsFix" :year="since" :title="$t('fixHeatmap')" />
 
-        <!-- Merge 活跃图 -->
-        <HeatMapCard :commits="commitsMerge" :year="since" :title="$t('mergeHeatmap')" />
+            <!-- Feat 活跃图 -->
+            <HeatMapCard :commits="commitsFeat" :year="since" :title="$t('featHeatmap')" />
+
+            <!-- Merge 活跃图 -->
+            <HeatMapCard :commits="commitsMerge" :year="since" :title="$t('mergeHeatmap')" />
+        </div>
     </div>
 </template>
 

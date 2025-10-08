@@ -1,15 +1,32 @@
 <template>
-  <div class="flex nowrap w-full h-full">
-    <div class="w-1/4 h-[calc(100vh-120px)]">
-      <ConditionFilter v-model:filter="filter" />
-    </div>
-    <div class="w-2/4 h-[calc(100vh-120px)]">
-      <AnalysisView v-model:filter="filter" />
-    </div>
-    <div class="w-1/4 h-[calc(100vh-120px)]">
-      <CommitLogs v-model:filter="filter" />
+  <div class="w-full content-center">
+    <div class="w-full max-w-[1600px]">
+      <div class="flex nowrap w-full h-full" v-if="$q.screen.gt.sm">
+        <div class="w-[320px] h-[calc(100vh-130px)]">
+          <ConditionFilter v-model:filter="filter" />
+        </div>
+        <div class="w-[calc(100%-640px)] h-[calc(100vh-130px)]">
+          <AnalysisView v-model:filter="filter" />
+        </div>
+        <div class="w-[320px] h-[calc(100vh-130px)]">
+          <CommitLogs v-model:filter="filter" />
+        </div>
+      </div>
+
+      <div class="flex nowrap w-full h-full" v-else>
+        <div class="w-full content-center">
+          <ConditionFilter v-model:filter="filter" />
+        </div>
+        <div class="w-full min-h-[120px]">
+          <AnalysisView v-model:filter="filter" />
+        </div>
+        <div class="w-full min-h-[120px]">
+          <CommitLogs v-model:filter="filter" />
+        </div>
+      </div>
     </div>
   </div>
+
 </template>
 
 <script lang="ts" setup>

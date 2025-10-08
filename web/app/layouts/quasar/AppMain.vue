@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- <BreadCrumbs /> -->
-     <div class="w-full h-[16px]"></div>
+     <div class="w-full h-[32px]"></div>
     <NuxtPage />
   </div>
 </template>

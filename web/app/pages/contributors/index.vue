@@ -1,9 +1,9 @@
 <template>
   <div class="w-full h-full flex flex-col justify-center items-center p-4">
-    <AuthorRanking class="q-pa-md w-[80vw]"  :authors="rows" :since="since" />
+    <AuthorRanking class="q-pa-md w-[80vw] max-w-[1080px]"  :authors="rows" :since="since" />
 
     <!-- 提交频率图-->
-    <div class="q-pa-md w-[80vw]" v-for="(item, index) in commitsPeriods" :key="index">
+    <div class="q-pa-md w-[80vw] max-w-[1080px]" v-for="(item, index) in commitsPeriods" :key="index">
       <PeriodCard :commits="item" :year="since" :title="$t('commitPeriod') + '-' + item.nickname" />
     </div>
 

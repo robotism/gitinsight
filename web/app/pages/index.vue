@@ -2,23 +2,35 @@
   <div class="w-full content-center">
     <div class="max-w-[1600px] flex flex-row content-center">
 
-      <ProjectsCard class="card" :title="$t('dashboard.todayProjects')" :projects="todayProjects" />
-      <RankingCard class="card" :title="$t('dashboard.todayRanking')" :ranking="todayRanking" />
+      <ProjectsCard :class="$q.screen.gt.md ? 'card' : 'card-mobile'" :title="$t('dashboard.todayProjects')"
+        :projects="todayProjects" />
+      <RankingCard :class="$q.screen.gt.md ? 'card' : 'card-mobile'" :title="$t('dashboard.todayRanking')"
+        :ranking="todayRanking" />
 
-      <ProjectsCard class="card" :title="$t('dashboard.yesterdayProjects')" :projects="yesterdayProjects" />
-      <RankingCard class="card" :title="$t('dashboard.yesterdayRanking')" :ranking="yesterdayRanking" />
+      <ProjectsCard :class="$q.screen.gt.md ? 'card' : 'card-mobile'" :title="$t('dashboard.yesterdayProjects')"
+        :projects="yesterdayProjects" />
+      <RankingCard :class="$q.screen.gt.md ? 'card' : 'card-mobile'" :title="$t('dashboard.yesterdayRanking')"
+        :ranking="yesterdayRanking" />
 
-      <ProjectsCard class="card" :title="$t('dashboard.weekProjects')" :projects="weekProjects" />
-      <RankingCard class="card" :title="$t('dashboard.weekRanking')" :ranking="weekRanking" />
+      <ProjectsCard :class="$q.screen.gt.md ? 'card' : 'card-mobile'" :title="$t('dashboard.weekProjects')"
+        :projects="weekProjects" />
+      <RankingCard :class="$q.screen.gt.md ? 'card' : 'card-mobile'" :title="$t('dashboard.weekRanking')"
+        :ranking="weekRanking" />
 
-      <ProjectsCard class="card" :title="$t('dashboard.lastWeekProjects')" :projects="lastWeekProjects" />
-      <RankingCard class="card" :title="$t('dashboard.lastWeekRanking')" :ranking="lastWeekRanking" />
+      <ProjectsCard :class="$q.screen.gt.md ? 'card' : 'card-mobile'" :title="$t('dashboard.lastWeekProjects')"
+        :projects="lastWeekProjects" />
+      <RankingCard :class="$q.screen.gt.md ? 'card' : 'card-mobile'" :title="$t('dashboard.lastWeekRanking')"
+        :ranking="lastWeekRanking" />
 
-      <ProjectsCard class="card" :title="$t('dashboard.monthProjects')" :projects="monthProjects" />
-      <RankingCard class="card" :title="$t('dashboard.monthRanking')" :ranking="monthRanking" />
+      <ProjectsCard :class="$q.screen.gt.md ? 'card' : 'card-mobile'" :title="$t('dashboard.monthProjects')"
+        :projects="monthProjects" />
+      <RankingCard :class="$q.screen.gt.md ? 'card' : 'card-mobile'" :title="$t('dashboard.monthRanking')"
+        :ranking="monthRanking" />
 
-      <ProjectsCard class="card" :title="$t('dashboard.lastMonthProjects')" :projects="lastMonthProjects" />
-      <RankingCard class="card" :title="$t('dashboard.lastMonthRanking')" :ranking="lastMonthRanking" />
+      <ProjectsCard :class="$q.screen.gt.md ? 'card' : 'card-mobile'" :title="$t('dashboard.lastMonthProjects')"
+        :projects="lastMonthProjects" />
+      <RankingCard :class="$q.screen.gt.md ? 'card' : 'card-mobile'" :title="$t('dashboard.lastMonthRanking')"
+        :ranking="lastMonthRanking" />
 
     </div>
   </div>
@@ -181,6 +193,11 @@ onUnmounted(() => {
 <style scoped>
 .card {
   width: 360px;
+  height: 270px;
+}
+
+.card-mobile {
+  width: 96vw;
   height: 270px;
 }
 </style>
