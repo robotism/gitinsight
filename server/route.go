@@ -12,6 +12,7 @@ func RegisterRoute(g *gin.RouterGroup) {
 	g.GET("/branches", GetRepoBranches)
 	g.GET("/ranking", GetRanking)
 	g.GET("/heatmap", GetCommitHeatmap)
+	g.GET("/period", GetCommitPeriod)
 }
 
 func GetRanking(c *gin.Context) {
@@ -178,6 +179,48 @@ func GetCommitHeatmap(c *gin.Context) {
 		MessageType: messageType,
 		IsMerge:     isMerge,
 	})
+	if err != nil {
+		c.JSON(200, gin.H{
+			"code":    500,
+			"message": err.Error(),
+			"data":    nil,
+		})
+		return
+	} else {
+		c.JSON(200, gin.H{
+			"code":    200,
+			"message": "success",
+			"meta": gin.H{
+				"since": since,
+				"until": until,
+			},
+			"data": data,
+		})
+	}
+}
+
+func GetCommitPeriod(c *gin.Context) {
+	since := c.Query("since")
+	until := c.Query("until")
+	repos := c.Query("repos")
+	branches := c.Query("branches")
+	authors := c.Query("authors")
+	messageType := c.Query("messageType")
+	isMerge := c.Query("isMerge")
+	period := c.Query("period")
+
+	if since == "" {
+		since = GetConfig().Insight.Since
+	}
+	data, err := gitinsight.GetCommitStatsByPeriodAndUser(&gitinsight.CommitLogFilter{
+		DateFrom:    since,
+		DateTo:      until,
+		RepoUrl:     repos,
+		BranchName:  branches,
+		Nickname:    authors,
+		MessageType: messageType,
+		IsMerge:     isMerge,
+	}, period)
 	if err != nil {
 		c.JSON(200, gin.H{
 			"code":    500,

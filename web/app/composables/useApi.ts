@@ -13,7 +13,7 @@ export const useApi = () => {
     ) {
       return env?.BASE_URL || "";
     } else {
-      return env?.BASE_URL || "localhost:8080";
+      return env?.BASE_URL || "http://localhost:8080";
     }
   })();
 
@@ -79,11 +79,28 @@ export const useApi = () => {
     });
   };
 
+  const getCommitPeriod = async (filter?: any) => {
+    return await $fetch(baseUrl + "/v1/period", {
+      params: {
+        since: filter?.since || "",
+        until: filter?.until || "",
+        repos: filter?.repos?.join?.(",") || "",
+        branches: filter?.branches?.join?.(",") || "",
+        authors: filter?.authors?.join?.(",") || "",
+        messageType: filter?.messageType || "",
+        isMerge: filter?.isMerge || "",
+        period: filter?.period || "day",
+        groupByNickname: filter?.groupByNickname || "",
+      },
+    });
+  };
+
   return {
     getCommitLogs,
     getContributors,
     getRepoBranches,
     getRanking,
     getCommitHeatmap,
+    getCommitPeriod,
   };
 };

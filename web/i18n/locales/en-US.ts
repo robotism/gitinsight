@@ -38,6 +38,7 @@ export default defineI18nLocale(async (locale) => {
     commitLogs: "Commit Logs",
     conditionFilter: "Condition Filter",
     analysisView: "Statistics Result",
+    commitPeriod: "Commit Period",
     commitHeatmap: "Commit Heatmap",
     fixHeatmap: "Fix Heatmap",
     featHeatmap: "Feat Heatmap",

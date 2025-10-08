@@ -45,17 +45,17 @@ insight:
 # generate config
 touch config.yaml
 docker run --rm \
--v $(pwd)/config.yaml:/config.yaml \
-ghcr.io/robotism/gitinsight:20251007-296c4ca \
-/gitinsight config gen -f /config.yaml -o
+-v $(pwd)/config.yaml:/app/config.yaml \
+ghcr.io/robotism/gitinsight:20251008 \
+./gitinsight config gen -o -f /app/config.yaml 
 # vim config.yaml
 
 # run
 docker run --rm \
 -p 8088:8080 \
--v $(pwd)/config.yaml:/config.yaml \
--v $(pwd)/.repos:/.repos \
-ghcr.io/robotism/gitinsight:20251007-296c4ca
+-v $(pwd)/config.yaml:/app/config.yaml \
+-v $(pwd)/.repos:/app/.repos \
+ghcr.io/robotism/gitinsight:20251008
 
 ```
 
@@ -72,3 +72,9 @@ ghcr.io/robotism/gitinsight:20251007-296c4ca
 ![](screenshots/analyzer1.png)
 ![](screenshots/analyzer2.png)
 ![](screenshots/contributors.png)
+
+
+
+## License
+
+MIT License

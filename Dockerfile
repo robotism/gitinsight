@@ -1,22 +1,36 @@
-# 构建 Go 二进制
+# =========================
+# 构建阶段
+# =========================
 FROM golang:1.24-alpine AS builder
 
-WORKDIR /
+# 在容器根目录构建
+WORKDIR /src
 
-# 安装依赖工具
 RUN apk add --no-cache git ca-certificates
 
-# 拷贝代码并构建
+# 拷贝依赖文件并下载依赖
 COPY go.mod go.sum ./
 RUN go mod download
-COPY . .
-RUN go build -o gitinsight ./cmd/gitinsight/
 
-# 生产镜像
+# 拷贝整个项目
+COPY . .
+
+# 编译产物到 bin/
+RUN go build -o bin/gitinsight ./cmd/gitinsight/
+
+# =========================
+# 生产阶段
+# =========================
 FROM alpine:3.18
-WORKDIR /
+
+# ✅ 设置镜像工作目录为 /app
+WORKDIR /app
+
 RUN apk add --no-cache ca-certificates
-COPY --from=builder /gitinsight .
+
+# 从构建阶段复制二进制文件
+COPY --from=builder /src/bin/gitinsight /app/gitinsight
 
 EXPOSE 8080
+
 CMD ["./gitinsight", "serv"]
