@@ -2,23 +2,23 @@
   <div class="w-full content-center">
     <div class="max-w-[1600px] flex flex-row content-center">
 
-      <ProjectsCard :title="$t('dashboard.todayProjects')" :projects="todayProjects" />
-      <RankingCard :title="$t('dashboard.todayRanking')" :ranking="todayRanking" />
+      <ProjectsCard class="card" :title="$t('dashboard.todayProjects')" :projects="todayProjects" />
+      <RankingCard class="card" :title="$t('dashboard.todayRanking')" :ranking="todayRanking" />
 
-      <ProjectsCard :title="$t('dashboard.yesterdayProjects')" :projects="yesterdayProjects" />
-      <RankingCard :title="$t('dashboard.yesterdayRanking')" :ranking="yesterdayRanking" />
+      <ProjectsCard class="card" :title="$t('dashboard.yesterdayProjects')" :projects="yesterdayProjects" />
+      <RankingCard class="card" :title="$t('dashboard.yesterdayRanking')" :ranking="yesterdayRanking" />
 
-      <ProjectsCard :title="$t('dashboard.weekProjects')" :projects="weekProjects" />
-      <RankingCard :title="$t('dashboard.weekRanking')" :ranking="weekRanking" />
+      <ProjectsCard class="card" :title="$t('dashboard.weekProjects')" :projects="weekProjects" />
+      <RankingCard class="card" :title="$t('dashboard.weekRanking')" :ranking="weekRanking" />
 
-      <ProjectsCard :title="$t('dashboard.lastWeekProjects')" :projects="lastWeekProjects" />
-      <RankingCard :title="$t('dashboard.lastWeekRanking')" :ranking="lastWeekRanking" />
+      <ProjectsCard class="card" :title="$t('dashboard.lastWeekProjects')" :projects="lastWeekProjects" />
+      <RankingCard class="card" :title="$t('dashboard.lastWeekRanking')" :ranking="lastWeekRanking" />
 
-      <ProjectsCard :title="$t('dashboard.monthProjects')" :projects="monthProjects" />
-      <RankingCard :title="$t('dashboard.monthRanking')" :ranking="monthRanking" />
+      <ProjectsCard class="card" :title="$t('dashboard.monthProjects')" :projects="monthProjects" />
+      <RankingCard class="card" :title="$t('dashboard.monthRanking')" :ranking="monthRanking" />
 
-      <ProjectsCard :title="$t('dashboard.lastMonthProjects')" :projects="lastMonthProjects" />
-      <RankingCard :title="$t('dashboard.lastMonthRanking')" :ranking="lastMonthRanking" />
+      <ProjectsCard class="card" :title="$t('dashboard.lastMonthProjects')" :projects="lastMonthProjects" />
+      <RankingCard class="card" :title="$t('dashboard.lastMonthRanking')" :ranking="lastMonthRanking" />
 
     </div>
   </div>
@@ -175,5 +175,12 @@ onUnmounted(() => {
   clearInterval(interval.value)
 })
 
-
 </script>
+
+
+<style scoped>
+.card {
+  width: 360px;
+  height: 270px;
+}
+</style>

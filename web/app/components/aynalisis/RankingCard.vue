@@ -1,6 +1,5 @@
 <template>
-    <!-- <div ref="chartRef" class="w-[360px] h-[270px]"></div> -->
-    <VChart class="w-full h-[400px] border border-gray-200 m-1" :option="option" autoresize />
+    <VChart :option="option" autoresize />
 </template>
 
 <script setup lang="ts">
