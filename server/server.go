@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/chaos-plus/chaos-plus-toolx/xres"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/robotism/gitinsight/gitinsight"
@@ -84,12 +85,18 @@ func Run(config *AppConfig) error {
 	g.Use(gin.Logger())
 	g.Use(gin.Recovery())
 
+	res := xres.New(web.WebDistFs)
+
 	g.NoRoute(func(c *gin.Context) {
-		if strings.HasPrefix(c.Request.URL.Path, "dist") {
-			c.FileFromFS(c.Request.URL.Path, fs)
-		} else {
-			c.FileFromFS("dist/"+c.Request.URL.Path, fs)
+		path := strings.TrimLeft(c.Request.URL.Path, "/")
+		pathes := []string{path, "dist/" + path}
+		for _, p := range pathes {
+			if ok, _ := res.IsFile(p); ok {
+				c.FileFromFS(p, fs)
+				return
+			}
 		}
+		c.FileFromFS("dist/", fs)
 	})
 
 	v1 := g.Group("/v1")

@@ -48,7 +48,7 @@ func GetCommitStatsByPeriodAndUser(filter *CommitLogFilter, period string) ([]Co
 		// 周日日期
 		switch dbType {
 		case dialect.MySQL:
-			periodExpr = "DATE_ADD(date, INTERVAL (6 - WEEKDAY(date)) DAY)" // 周日
+			periodExpr = "DATE_FORMAT(DATE_ADD(date, INTERVAL (6 - WEEKDAY(date)) DAY), '%Y-%m-%d')" // 周日
 		case dialect.SQLite:
 			periodExpr = "DATE(date, 'weekday 0')" // SQLite: weekday 0 = Sunday
 		case dialect.PG:
