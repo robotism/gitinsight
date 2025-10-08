@@ -1,12 +1,9 @@
 <template>
-  <div ref="chartRef" class="w-[3/7] h-[270px] border border-gray-200 m-1 "></div>
+  <VChart class="w-full h-[400px] border border-gray-200 m-1" :option="option" autoresize />
 </template>
 
 <script setup>
-import * as echarts from 'echarts'
 import dayjs from 'dayjs'
-
-const { size } = useWindow()
 
 const i18n = useI18n()
 
@@ -22,26 +19,15 @@ const props = defineProps({
   }
 })
 
-const chartRef = ref(null)
-const chart = ref(null)
-
-/**
- * 自动计算数据范围（适配跨年情况）
- */
-// const calcRange = (data) => {
-//   if (!data?.length) return [new Date().getFullYear().toString()]
-//   const dates = data.map(d => d[0]).sort()
-//   return [dates[0], dates[dates.length - 1]]
-// }
 
 /**
  * 自动计算数据范围（适配跨年情况，并固定显示至少 showDays 天）
  */
- const calcRange = (data, showDays = 90) => {
+const calcRange = (data, showDays = 90) => {
   const today = new Date()
   const endDate = dayjs(today)
   const startDate = endDate.subtract(showDays - 1, 'day')
-  
+
   const datesFromData = (data || []).map(d => d[0]).sort()
   const firstDataDate = datesFromData[0] ? dayjs(datesFromData[0]) : startDate
 
@@ -123,40 +109,7 @@ const option = computed(() => {
   }
 })
 
-/**
- * 初始化与更新逻辑
- */
-const initChart = () => {
-  if (!chartRef.value) return
-  if (!chart.value) {
-    chart.value = echarts.init(chartRef.value)
-  }
-  if (option.value?.visualMap) {
-    chart.value.setOption(option.value)
-  }
-}
 
-// 监听窗口变化
-watch(() => size.value, () => {
-  chart.value?.resize()
-}, { deep: true })
-
-// 监听数据变化
-watch(option, () => {
-  if (chart.value) {
-    chart.value.setOption(option.value, true)
-  } else {
-    initChart()
-  }
-}, { deep: true, immediate: true })
-
-onMounted(() => {
-  initChart()
-})
-
-onUnmounted(() => {
-  if (chart.value) chart.value.dispose()
-})
 </script>
 
 <style scoped>

@@ -1,12 +1,12 @@
 <template>
-    <div ref="chartRef" class="w-[360px] h-[270px]"></div>
+    <!-- <div ref="chartRef" class="w-[360px] h-[270px]"></div> -->
+    <VChart class="w-full h-[400px] border border-gray-200 m-1" :option="option" autoresize />
 </template>
 
 <script setup lang="ts">
-import * as echarts from "echarts";
 
 const i18n = useI18n();
-const { size } = useWindow();
+
 const { rankColor } = useColor();
 
 const props = defineProps({
@@ -22,9 +22,6 @@ const props = defineProps({
         default: [],
     },
 });
-
-const chartRef = ref<HTMLDivElement | null>(null);
-const chart = ref<echarts.ECharts | null>(null);
 
 const metricKey = computed(() => props.metric);
 const metricLabel = computed(() => i18n.t(metricKey.value));
@@ -90,28 +87,6 @@ const option = computed(() => ({
     ],
 }));
 
-// 自适应 resize
-watch(() => size.value, () => {
-    if (chart.value && !chart.value.isDisposed()) {
-        chart.value.resize();
-    }
-}, { deep: true });
-
-// 监听数据变化自动更新图表
-watch(option, (val) => {
-    if (chart.value) {
-        chart.value.setOption(val, true); // 不合并旧配置，强制全量更新
-    }
-});
-
-onMounted(async () => {
-    chart.value = echarts.init(chartRef.value!);
-    chart.value.setOption(option.value);
-});
-
-onUnmounted(() => {
-    chart.value?.dispose();
-});
 </script>
 
 <style scoped></style>

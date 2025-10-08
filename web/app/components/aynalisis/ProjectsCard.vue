@@ -1,12 +1,11 @@
 <template>
-    <div ref="chartRef" class="w-[360px] h-[270px]"></div>
+    <VChart :option="option" autoresize/>
 </template>
 
 <script setup>
-import * as echarts from 'echarts'
 
 const i18n = useI18n()
-const { size } = useWindow()
+
 const { hashColor } = useColor()
 
 const props = defineProps({
@@ -23,8 +22,6 @@ const props = defineProps({
     }
 })
 
-const chartRef = ref(null)
-const chart = ref(null)
 
 // 解析 repo 名称
 const branches = computed(() =>
@@ -87,32 +84,6 @@ const option = computed(() => {
     }
 })
 
-// 自适应 resize
-watch(() => size.value, (_, oldVal) => {
-    if (oldVal.width == 0 || oldVal.height == 0) {
-        return
-    }
-    if (chart.value && !chart.value.isDisposed() && chart.value.getOption()) {
-        chart.value.resize();
-    }
-}, { deep: true });
-
-// 监听数据变化自动更新图表
-watch(option, (val) => {
-    if (chart.value) {
-        chart.value.setOption(val, true); // 不合并旧配置，强制全量更新
-    }
-});
-
-
-onMounted(() => {
-    chart.value = echarts.init(chartRef.value)
-    chart.value.setOption(option.value)
-})
-
-onUnmounted(() => {
-    if (chart.value) chart.value.dispose()
-})
 </script>
 
 <style scoped>

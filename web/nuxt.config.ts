@@ -5,7 +5,7 @@ import appconfig from "./site.config";
 import tailwindcss from "@tailwindcss/vite";
 
 export default defineNuxtConfig({
-  compatibilityDate: '2025-07-15',
+  compatibilityDate: "2025-07-15",
   ssr: false,
   srcDir: "app/",
   routeRules: {
@@ -21,10 +21,10 @@ export default defineNuxtConfig({
     plugins: [tailwindcss()],
   },
   nitro: {
-    output:{
-      publicDir: "dist"
+    output: {
+      publicDir: "dist",
     },
-    preset: 'static',
+    preset: "static",
     prerender: {
       crawlLinks: true,
       failOnError: false,
@@ -50,9 +50,10 @@ export default defineNuxtConfig({
     "@nuxtjs/color-mode",
     "@nuxt/icon",
     "@nuxt/fonts",
+    "nuxt-echarts",
   ],
   experimental: {
-    payloadExtraction: false
+    payloadExtraction: false,
   },
   site: {
     url: appconfig.site.url,
@@ -143,14 +144,28 @@ export default defineNuxtConfig({
         highlight: {
           theme: {
             // Default theme (same as single string)
-            default: 'github-light',
+            default: "github-light",
             // Theme used if `html.dark`
-            dark: 'github-dark',
+            dark: "github-dark",
             // Theme used if `html.sepia`
-            sepia: 'monokai'
-          }
-        }
-      }
-    }
+            sepia: "monokai",
+          },
+        },
+      },
+    },
+  },
+  echarts: {
+    features: ["LabelLayout", "UniversalTransition"],
+    charts: ["BarChart", "LineChart", "PieChart", "HeatmapChart"],
+    components: [
+      "DatasetComponent",
+      "GridComponent",
+      "TooltipComponent",
+      "TitleComponent",
+      "LegendComponent",
+      'DataZoomComponent',
+      'VisualMapComponent',
+      'CalendarComponent',
+    ],
   },
 });

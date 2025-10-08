@@ -1,10 +1,8 @@
 <template>
-  <div ref="chartRef" class="w-full h-[400px] border border-gray-200 m-1"></div>
+  <VChart class="w-full h-[400px] border border-gray-200 m-1" :option="option" autoresize />
 </template>
 
 <script setup lang="ts">
-import * as echarts from 'echarts'
-const { size } = useWindow()
 const i18n = useI18n()
 
 // ✅ 接收父组件传入数据
@@ -19,9 +17,6 @@ const props = defineProps({
     // 格式: [{ period: '2025-01-02', nickname: 'robotism', effectives: 957 }]
   }
 })
-
-const chartRef = ref<HTMLElement | null>(null)
-const chart = ref<echarts.ECharts | null>(null)
 
 /**
  * 生成折线图配置
@@ -112,51 +107,24 @@ const option = computed(() => {
       splitLine: { lineStyle: { color: '#eee' } }
     },
     series,
-    // dataZoom: [
-    //   {
-    //     type: 'slider',
-    //     xAxisIndex: 0, // 指定作用在 xAxis[0]
-    //     start: 0,
-    //     end: Math.min(30 / dates.length * 100, 100), // 默认显示最近 30 天或全部
-    //     handleSize: 10
-    //   },
-    //   {
-    //     type: 'inside',
-    //     xAxisIndex: 0,
-    //     start: 0,
-    //     end: Math.min(30 / dates.length * 100, 100)
-    //   }
-    // ]
+    dataZoom: [
+      {
+        type: 'slider',
+        xAxisIndex: 0, // 指定作用在 xAxis[0]
+        start: 0,
+        end: Math.min(30 / dates.length * 100, 100), // 默认显示最近 30 天或全部
+        handleSize: 10
+      },
+      {
+        type: 'inside',
+        xAxisIndex: 0,
+        start: 0,
+        end: Math.min(30 / dates.length * 100, 100)
+      }
+    ]
   }
 })
 
-/**
- * 初始化与更新逻辑
- */
-const initChart = () => {
-  if (!chartRef.value) return
-  if (!chart.value) {
-    chart.value = echarts.init(chartRef.value)
-  }
-  chart.value.setOption(option.value)
-}
-
-// 监听窗口变化
-watch(() => size.value, () => {
-  chart.value?.resize()
-}, { deep: true })
-
-// 监听数据变化
-watch(option, () => {
-  if (chart.value) {
-    chart.value.setOption(option.value, true)
-  } else {
-    initChart()
-  }
-}, { deep: true, immediate: true })
-
-onMounted(() => initChart())
-onUnmounted(() => chart.value?.dispose())
 </script>
 
 <style scoped>

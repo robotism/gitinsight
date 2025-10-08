@@ -1,8 +1,0 @@
-# START nuxt-robots (indexable)
-User-agent: *
-Allow: /
-Allow: /en/
-Allow: /zh/
-
-Sitemap: http://undefined/sitemap_index.xml
-# END nuxt-robots
