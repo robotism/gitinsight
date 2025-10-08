@@ -7,6 +7,7 @@ import (
 
 	"github.com/chaos-plus/chaos-plus-toolx/xcast"
 	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/dialect"
 )
 
 // CommitPeriodStatItem 表示按天/周/月统计的数据
@@ -19,7 +20,7 @@ type CommitPeriodStatItem struct {
 	Effectives int    `bun:"effectives" json:"effectives"`
 }
 
-// GetCommitStatsByPeriodAndUser 支持按日/周/月统计，每个用户一道线
+// GetCommitStatsByPeriodAndUser 支持按日/周/月统计，每个用户一道线，兼容 MySQL/SQLite/PostgreSQL
 func GetCommitStatsByPeriodAndUser(filter *CommitLogFilter, period string) ([]CommitPeriodStatItem, error) {
 	if gdb == nil {
 		return nil, errors.New("database not initialized")
@@ -27,33 +28,60 @@ func GetCommitStatsByPeriodAndUser(filter *CommitLogFilter, period string) ([]Co
 	ctx := context.Background()
 	var results []CommitPeriodStatItem
 
-	query := gdb.NewSelect().Model((*CommitLogModel)(nil)).
-		ColumnExpr("nickname").
-		ColumnExpr("COUNT(DISTINCT commit_hash) AS commits").
-		ColumnExpr("SUM(additions) AS additions").
-		ColumnExpr("SUM(deletions) AS deletions").
-		ColumnExpr("SUM(effectives) AS effectives")
+	// 根据数据库类型生成 period 表达式
+	var periodExpr string
+	dbType := gdb.Dialect().Name()
 
-	// 横坐标按时间
 	switch strings.ToLower(period) {
 	case "day", "daily":
-		// 按天显示
-		query.ColumnExpr("DATE(date) AS period").
-			GroupExpr("DATE(date), nickname").
-			OrderExpr("DATE(date) ASC")
+		switch dbType {
+		case dialect.MySQL:
+			periodExpr = "DATE(date)"
+		case dialect.SQLite:
+			periodExpr = "DATE(date)"
+		case dialect.PG:
+			periodExpr = "TO_CHAR(date::date, 'YYYY-MM-DD')"
+		default:
+			return nil, errors.New("unsupported db dialect for daily stats")
+		}
 	case "week", "weekly":
-		// 使用周一作为每周的 period
-		query.ColumnExpr("DATE(date, 'weekday 1', '-6 days') AS period").
-			GroupExpr("DATE(date, 'weekday 1', '-6 days'), nickname").
-			OrderExpr("DATE(date, 'weekday 1', '-6 days') ASC")
+		// 周日日期
+		switch dbType {
+		case dialect.MySQL:
+			periodExpr = "DATE_ADD(date, INTERVAL (6 - WEEKDAY(date)) DAY)" // 周日
+		case dialect.SQLite:
+			periodExpr = "DATE(date, 'weekday 0')" // SQLite: weekday 0 = Sunday
+		case dialect.PG:
+			periodExpr = "TO_CHAR(date_trunc('week', date + interval '6 days')::date, 'YYYY-MM-DD')" // 周日
+		default:
+			return nil, errors.New("unsupported db dialect for weekly stats")
+		}
 	case "month", "monthly":
-		// 按月显示
-		query.ColumnExpr("strftime('%Y-%m', date) AS period").
-			GroupExpr("strftime('%Y-%m', date), nickname").
-			OrderExpr("strftime('%Y-%m', date) ASC")
+		switch dbType {
+		case dialect.MySQL:
+			periodExpr = "DATE_FORMAT(date, '%Y-%m')"
+		case dialect.SQLite:
+			periodExpr = "strftime('%Y-%m', date)"
+		case dialect.PG:
+			periodExpr = "to_char(date, 'YYYY-MM')"
+		default:
+			return nil, errors.New("unsupported db dialect for monthly stats")
+		}
+
 	default:
 		return nil, errors.New("invalid period, must be one of: day, week, month")
 	}
+
+	// 构建查询
+	query := gdb.NewSelect().Model((*CommitLogModel)(nil)).
+		ColumnExpr("nickname").
+		ColumnExpr("COUNT(DISTINCT commit_hash) AS commits"). // 去重 commit
+		ColumnExpr("SUM(additions) AS additions").
+		ColumnExpr("SUM(deletions) AS deletions").
+		ColumnExpr("SUM(effectives) AS effectives").
+		ColumnExpr(periodExpr + " AS period").
+		GroupExpr(periodExpr + ", nickname").
+		OrderExpr(periodExpr + " ASC")
 
 	// 过滤条件
 	if filter.RepoUrl != "" {
@@ -91,6 +119,7 @@ func GetCommitStatsByPeriodAndUser(filter *CommitLogFilter, period string) ([]Co
 		query.Where("is_merge = 0")
 	}
 
+	// 执行查询
 	if err := query.Scan(ctx, &results); err != nil {
 		return nil, err
 	}

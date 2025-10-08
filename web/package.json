@@ -56,29 +56,23 @@
     "@esbuild/darwin-x64": "^0.25.10",
     "@esbuild/linux-x64-gnu": "^0.25.10",
     "@esbuild/win32-x64-msvc": "^0.25.10",
-
     "@oxc-minify/binding-darwin-x64": "^0.94.0",
     "@oxc-minify/binding-linux-x64-gnu": "^0.94.0",
     "@oxc-minify/binding-win32-x64-msvc": "^0.94.0",
-    
     "@oxc-parser/binding-darwin-x64": "^0.94.0",
     "@oxc-parser/binding-linux-x64-gnu": "^0.94.0",
     "@oxc-parser/binding-win32-x64-msvc": "^0.94.0",
-
     "@oxc-transform/binding-darwin-x64": "^0.94.0",
     "@oxc-transform/binding-linux-x64-gnu": "^0.94.0",
     "@oxc-transform/binding-win32-x64-msvc": "^0.94.0",
-
     "@rollup/rollup-darwin-x64": "^4.52.4",
     "@rollup/rollup-linux-x64-gnu": "^4.52.4",
     "@rollup/rollup-win32-x64-msvc": "^4.52.4",
-
     "@tailwindcss/oxide-darwin-x64": "^4.1.14",
     "@tailwindcss/oxide-linux-x64-gnu": "^4.1.14",
     "@tailwindcss/oxide-win32-x64-msvc": "^4.1.14",
-
+    "lightningcss-darwin-x64": "^1.30.2",
     "lightningcss-linux-x64-gnu": "^1.30.2",
-    "lightningcss-win32-x64-msvc": "^1.30.2",
-    "lightningcss-darwin-x64": "^1.30.2"
+    "lightningcss-win32-x64-msvc": "^1.30.2"
   }
 }

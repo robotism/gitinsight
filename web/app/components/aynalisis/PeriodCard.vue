@@ -112,21 +112,21 @@ const option = computed(() => {
       splitLine: { lineStyle: { color: '#eee' } }
     },
     series,
-    dataZoom: [
-      {
-        type: 'slider',
-        xAxisIndex: 0, // 指定作用在 xAxis[0]
-        start: 0,
-        end: Math.min(30 / dates.length * 100, 100), // 默认显示最近 30 天或全部
-        handleSize: 10
-      },
-      {
-        type: 'inside',
-        xAxisIndex: 0,
-        start: 0,
-        end: Math.min(30 / dates.length * 100, 100)
-      }
-    ]
+    // dataZoom: [
+    //   {
+    //     type: 'slider',
+    //     xAxisIndex: 0, // 指定作用在 xAxis[0]
+    //     start: 0,
+    //     end: Math.min(30 / dates.length * 100, 100), // 默认显示最近 30 天或全部
+    //     handleSize: 10
+    //   },
+    //   {
+    //     type: 'inside',
+    //     xAxisIndex: 0,
+    //     start: 0,
+    //     end: Math.min(30 / dates.length * 100, 100)
+    //   }
+    // ]
   }
 })
 
