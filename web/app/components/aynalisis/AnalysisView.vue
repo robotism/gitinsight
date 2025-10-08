@@ -6,7 +6,10 @@
         <AuthorRanking :authors="authors" :since="since" sortBy="effectives" sortDirection="desc" />
 
         <!-- 提交频率图-->
-        <PeriodCard :commits="commitsPeriod" :year="since" :title="$t('commitPeriod')" />
+        <PeriodCard :commits="commitsPeriodDay" :year="since" :title="$t('commitPeriod')" />
+        
+        <!-- 提交频率图-->
+        <PeriodCard :commits="commitsPeriodWeek" :year="since" :title="$t('commitPeriod')" />
 
         <!-- Commit 活跃图 -->
         <HeatMapCard :commits="commitsAll" :year="since" :title="$t('commitHeatmap')" />
@@ -38,7 +41,8 @@ const commitsAll = ref<any[]>([]);
 const commitsFix = ref<any[]>([]);
 const commitsFeat = ref<any[]>([]);
 const commitsMerge = ref<any[]>([]);
-const commitsPeriod = ref<any[]>([]);
+const commitsPeriodDay = ref<any[]>([]);
+const commitsPeriodWeek = ref<any[]>([]);
 
 
 const props = defineProps({
@@ -90,8 +94,14 @@ const getData = async () => {
         ...props.filter,
         period: 'day',
     }).then((resp: any) => {
-        console.log(resp)
-        commitsPeriod.value = resp?.data || [];
+        commitsPeriodDay.value = resp?.data || [];
+        since.value = resp?.meta?.since || since.value;
+    });
+    api.getCommitPeriod({
+        ...props.filter,
+        period: 'week',
+    }).then((resp: any) => {
+        commitsPeriodWeek.value = resp?.data || [];
         since.value = resp?.meta?.since || since.value;
     });
 };

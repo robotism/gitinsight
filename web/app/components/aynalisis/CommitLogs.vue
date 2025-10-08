@@ -3,7 +3,7 @@
     <h6 class="ml-4 flex nowrap">📝 {{ $t('commitLogs') }}</h6>
     <q-infinite-scroll class="h-full overflow-auto" :offset="50" @load="onLoad">
       <q-item v-for="(c, index) in commitLogs" :key="index">
-        <div class="flex flex-column">
+        <div class="flex flex-col">
           <div class="w-full text-[11px] text-blue-900 font-bold">
             🏷️ {{ c.commitHash }}
           </div>

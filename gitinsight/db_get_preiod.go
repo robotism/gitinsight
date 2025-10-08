@@ -37,14 +37,17 @@ func GetCommitStatsByPeriodAndUser(filter *CommitLogFilter, period string) ([]Co
 	// 横坐标按时间
 	switch strings.ToLower(period) {
 	case "day", "daily":
+		// 按天显示
 		query.ColumnExpr("DATE(date) AS period").
 			GroupExpr("DATE(date), nickname").
 			OrderExpr("DATE(date) ASC")
 	case "week", "weekly":
-		query.ColumnExpr("strftime('%Y-%W', date) AS period").
-			GroupExpr("strftime('%Y-%W', date), nickname").
-			OrderExpr("strftime('%Y-%W', date) ASC")
+		// 使用周一作为每周的 period
+		query.ColumnExpr("DATE(date, 'weekday 1', '-6 days') AS period").
+			GroupExpr("DATE(date, 'weekday 1', '-6 days'), nickname").
+			OrderExpr("DATE(date, 'weekday 1', '-6 days') ASC")
 	case "month", "monthly":
+		// 按月显示
 		query.ColumnExpr("strftime('%Y-%m', date) AS period").
 			GroupExpr("strftime('%Y-%m', date), nickname").
 			OrderExpr("strftime('%Y-%m', date) ASC")
