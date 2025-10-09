@@ -13,6 +13,9 @@ func StartCrond(insight *gitinsight.Config) {
 		OnCrond(insight)
 	}()
 	crond = cron.New()
+	if insight.Interval == "" {
+		return
+	}
 	crond.AddFunc("@every "+insight.Interval, func() {
 		OnCrond(insight)
 	})
@@ -20,6 +23,9 @@ func StartCrond(insight *gitinsight.Config) {
 }
 
 func StopCrond() {
+	if crond == nil {
+		return
+	}
 	crond.Stop()
 }
 

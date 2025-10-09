@@ -4,34 +4,32 @@
 
         <div class="w-full flex flex-col">
             <q-list bordered class="rounded-borders">
-                <q-expansion-item  class="w-full group1" expand-separator default-opened icon="📅" :label="$t('timeRange')">
-                    <q-card class="w-full pl-2">
-                        <q-btn-dropdown  flat class="w-[240px] m-4" :label="timeSelection?.label">
-                            <q-list>
-                                <q-item v-for="(item, key) in timeOptions" :key="key" clickable v-close-popup
-                                    @click="timeSelection = item">
-                                    <q-item-section>
-                                        <q-item-label>{{ item.label }}</q-item-label>
-                                    </q-item-section>
-                                </q-item>
-                            </q-list>
-                        </q-btn-dropdown>
+                <q-expansion-item class="w-full group1" expand-separator default-opened icon="📅"
+                    :label="$t('timeRange')">
+                    <q-card class="w-full px-2 pb-2 max-h-[20vh] overflow-y-auto">
+                        <q-input dense v-model="range.since" type="date" clearable :prefix="$t('since')" />
+                        <q-input dense v-model="range.until" type="date" clearable :prefix="$t('until')" />
+                        <q-input dense v-model="range.geEffective" flat clearable type="number"
+                            :prefix="$t('effectives') + '>='" />
+                        <q-input dense v-model="range.leEffective" flat clearable type="number"
+                            :prefix="$t('effectives') + '<='" />
                     </q-card>
                 </q-expansion-item>
 
                 <q-expansion-item class="w-full group3 nowrap" dense expand-separator default-opened icon="👥"
                     :label="$t('contributors')" header-class="text-purple">
                     <q-card class="w-full pl-2 pb-2 max-h-[20vh] overflow-y-auto">
-                        <q-option-group class="w-full text-nowrap flex-wrap" dense v-model="authorSelections" :options="authorOptions"
-                            color="purple" type="checkbox">
+                        <q-option-group class="w-full text-nowrap flex-wrap" dense v-model="authorSelections"
+                            :options="authorOptions" color="purple" type="checkbox">
                             <template v-slot:label="opt">
                                 <span class="text-purple text-[8px]">{{ opt.label }}</span>
                             </template>
                         </q-option-group>
                     </q-card>
                 </q-expansion-item>
-                
-                <q-expansion-item class="w-full group1" dense expand-separator default-opened icon="🌿" :label="$t('repos')">
+
+                <q-expansion-item class="w-full group1" dense expand-separator default-opened icon="🌿"
+                    :label="$t('repos')">
                     <q-card class="w-full pl-2 pb-2 max-h-[20vh] overflow-y-auto">
                         <q-option-group class="w-full" dense v-model="repoSelections" :options="repoOptions"
                             color="green" type="checkbox">
@@ -48,8 +46,8 @@
 </template>
 
 <script lang="ts" setup>
-import moment from "moment";
 import { watch } from "vue";
+import DateInput from "~/components/tool/DatePicker.vue";
 
 const api = useApi();
 const i18n = useI18n();
@@ -62,58 +60,16 @@ const props = defineProps({
 });
 const emits = defineEmits(["update:filter"]);
 
+const range: Ref<any> = ref({
+    since: "",
+    until: "",
+    leEffective: "",
+    geEffective: "",
+});
+
 const repos: Ref<any[]> = ref([]);
 const authors: Ref<any[]> = ref([]);
 
-const timeOptions = computed(() => {
-    const FORMAT = "YYYY-MM-DD HH:mm:ss";
-    return [
-        {
-            label: i18n.t("all"),
-        },
-        {
-            label: i18n.t("today"),
-            since: moment().startOf("day").format(FORMAT),
-            until: moment().endOf("day").format(FORMAT),
-        },
-        {
-            label: i18n.t("yesterday"),
-            since: moment().subtract(1, "day").startOf("day").format(FORMAT),
-            until: moment().subtract(1, "day").endOf("day").format(FORMAT),
-        },
-        {
-            label: i18n.t("weekThis"),
-            since: moment().startOf("week").format(FORMAT),
-            until: moment().endOf("week").format(FORMAT),
-        },
-        {
-            label: i18n.t("weekLast"),
-            since: moment().subtract(1, "week").startOf("week").format(FORMAT),
-            until: moment().subtract(1, "week").endOf("week").format(FORMAT),
-        },
-        {
-            label: i18n.t("weekBeforeLast"),
-            since: moment().subtract(2, "week").startOf("week").format(FORMAT),
-            until: moment().subtract(2, "week").endOf("week").format(FORMAT),
-        },
-        {
-            label: i18n.t("monthThis"),
-            since: moment().startOf("month").format(FORMAT),
-            until: moment().endOf("month").format(FORMAT),
-        },
-        {
-            label: i18n.t("monthLast"),
-            since: moment().subtract(1, "month").startOf("month").format(FORMAT),
-            until: moment().subtract(1, "month").endOf("month").format(FORMAT),
-        },
-        {
-            label: i18n.t("monthBeforeLast"),
-            since: moment().subtract(2, "month").startOf("month").format(FORMAT),
-            until: moment().subtract(2, "month").endOf("month").format(FORMAT),
-        },
-    ];
-});
-const timeSelection = ref(timeOptions.value[0]);
 
 const repoSelections: Ref<string[]> = ref([]);
 const repoOptions: ComputedRef<any[]> = computed(() => {
@@ -231,13 +187,16 @@ watch(
 );
 
 watch(
-    [timeSelection, repoSelections, authorSelections],
+    [range, repoSelections, authorSelections],
     () => {
-        props.filter.since = timeSelection.value?.since || "";
-        props.filter.until = timeSelection.value?.until || "";
-        props.filter.repos = repoSelections.value.filter((item: any) => !!item);
-        props.filter.authors = authorSelections.value.filter((item: any) => !!item);
-        emits("update:filter", props.filter);
+        emits("update:filter", {
+            since: range.value?.since || "",
+            until: range.value?.until || "",
+            leEffective: range.value?.leEffective || "",
+            geEffective: range.value?.geEffective || "",
+            repos: repoSelections.value.filter((item: any) => !!item),
+            authors: authorSelections.value.filter((item: any) => !!item),
+        });
     },
     { deep: true }
 );
@@ -298,7 +257,12 @@ onMounted(() => {
     margin-bottom: 4px;
 }
 
-:deep(.group3 .q-option-group){
+:deep(.group3 .q-option-group) {
     display: flex;
 }
+
+:deep(.q-field__prefix) {
+    color: var(--q-color-primary) !important;
+}
+
 </style>

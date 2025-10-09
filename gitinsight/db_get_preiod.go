@@ -5,8 +5,6 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/chaos-plus/chaos-plus-toolx/xcast"
-	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect"
 )
 
@@ -21,7 +19,7 @@ type CommitPeriodStatItem struct {
 }
 
 // GetCommitStatsByPeriodAndUser 支持按日/周/月统计，每个用户一道线，兼容 MySQL/SQLite/PostgreSQL
-func GetCommitStatsByPeriodAndUser(filter *CommitLogFilter, period string) ([]CommitPeriodStatItem, error) {
+func GetCommitStatsByPeriodAndUser(filter *CommitLogFilter) ([]CommitPeriodStatItem, error) {
 	if gdb == nil {
 		return nil, errors.New("database not initialized")
 	}
@@ -32,6 +30,7 @@ func GetCommitStatsByPeriodAndUser(filter *CommitLogFilter, period string) ([]Co
 	var periodExpr string
 	dbType := gdb.Dialect().Name()
 
+	period := filter.Period
 	switch strings.ToLower(period) {
 	case "day", "daily":
 		switch dbType {
@@ -80,41 +79,7 @@ func GetCommitStatsByPeriodAndUser(filter *CommitLogFilter, period string) ([]Co
 		Column("deletions").
 		Column("effectives")
 
-	// === 加入过滤条件 ===
-	if filter.RepoUrl != "" {
-		subq.Where("repo_url IN (?)", bun.In(strings.Split(filter.RepoUrl, ",")))
-	}
-	if filter.BranchName != "" {
-		subq.Where("branch_name IN (?)", bun.In(strings.Split(filter.BranchName, ",")))
-	}
-	if filter.AuthorName != "" {
-		subq.Where("author_name IN (?)", bun.In(strings.Split(filter.AuthorName, ",")))
-	}
-	if filter.AuthorEmail != "" {
-		subq.Where("author_email IN (?)", bun.In(strings.Split(filter.AuthorEmail, ",")))
-	}
-	if filter.Nickname != "" {
-		subq.Where("nickname IN (?)", bun.In(strings.Split(filter.Nickname, ",")))
-	}
-	if filter.DateFrom != "" {
-		subq.Where("date >= ?", filter.DateFrom)
-	}
-	if filter.DateTo != "" {
-		subq.Where("date <= ?", filter.DateTo)
-	}
-	if filter.MessageType != "" {
-		subq.Where("message_type IN (?)", bun.In(strings.Split(filter.MessageType, ",")))
-	}
-	if filter.IsMerge != "" {
-		values := strings.Split(filter.IsMerge, ",")
-		nums := make([]int, len(values))
-		for i, v := range values {
-			nums[i] = xcast.ToInt(v)
-		}
-		subq.Where("is_merge IN (?)", bun.In(nums))
-	} else {
-		subq.Where("is_merge = 0")
-	}
+	filter.Query(subq)
 
 	// === 外层统计 ===
 	query := gdb.NewSelect().

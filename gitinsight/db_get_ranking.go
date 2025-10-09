@@ -3,9 +3,7 @@ package gitinsight
 import (
 	"context"
 	"errors"
-	"strings"
 
-	"github.com/chaos-plus/chaos-plus-toolx/xcast"
 	"github.com/uptrace/bun"
 )
 
@@ -35,32 +33,7 @@ func GetRanking(filter *CommitLogFilter) ([]Ranking, error) {
 		ColumnExpr("DISTINCT commit_hash, nickname, author_name, author_email, additions, deletions, effectives, repo_url, date").
 		Where("is_merge = 0")
 
-	if len(filter.RepoUrl) > 0 {
-		subQuery.Where("repo_url IN (?)", bun.In(strings.Split(filter.RepoUrl, ",")))
-	}
-	if len(filter.BranchName) > 0 {
-		subQuery.Where("branch_name IN (?)", bun.In(strings.Split(filter.BranchName, ",")))
-	}
-	if len(filter.Nickname) > 0 {
-		subQuery.Where("nickname IN (?)", bun.In(strings.Split(filter.Nickname, ",")))
-	}
-	if filter.DateFrom != "" {
-		subQuery.Where("date >= ?", filter.DateFrom)
-	}
-	if filter.DateTo != "" {
-		subQuery.Where("date <= ?", filter.DateTo)
-	}
-
-	if filter.IsMerge != "" {
-		values := strings.Split(filter.IsMerge, ",")
-		nums := make([]int, len(values))
-		for i, v := range values {
-			nums[i] = xcast.ToInt(v)
-		}
-		subQuery.Where("is_merge IN (?)", bun.In(nums))
-	} else {
-		subQuery.Where("is_merge = 0")
-	}
+	filter.Query(subQuery)
 
 	// 外层再统计
 	query := gdb.NewSelect().

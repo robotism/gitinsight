@@ -1,6 +1,6 @@
 <template>
   <div class="mb-4">
-    <q-table dense v-if="rows?.length > 0" :title="i18n.t('contributors')" color="primary" :rows="rows" :columns="columns"
+    <q-table dense :title="i18n.t('contributors')" color="primary" :rows="rows" :columns="columns"
       v-model:pagination="pagination" hide-pagination row-key="nickname">
       <template v-slot:header="props">
         <q-tr :props="props">
@@ -53,11 +53,15 @@
       </template>
 
       <template v-slot:bottom>
-        <div v-if="since">
-          {{ $t("timeRange") }}:
-          {{ fmt.localDate(since?.split?.(" ")?.[0]) }}
-          ~
-          {{ fmt.localDate(new Date()) }}
+        <div class="flex flex-row nowrap" >
+          <div class="mr-1">{{ $t("timeRange") }}:</div>
+          <div v-if="since" color="primary" text-color="white">
+            {{ since?.split?.(" ")?.[0] }}
+          </div>
+          <div class="mx-1">~</div>
+          <div v-if="until" color="primary" text-color="white">
+            {{ until?.split?.(" ")?.[0] }}
+          </div>
         </div>
       </template>
     </q-table>
@@ -68,8 +72,6 @@
 import { ref } from "vue";
 import type { QTableColumn } from "quasar";
 
-const fmt = useFormat();
-
 const i18n = useI18n();
 
 const props = defineProps({
@@ -78,6 +80,10 @@ const props = defineProps({
     required: true
   },
   since: {
+    type: String,
+    required: true
+  },
+  until: {
     type: String,
     required: true
   },

@@ -54,7 +54,7 @@ func HandleBranchCommitLogsToDb(insight *Config, repoPath string, branchName str
 		log.Printf("✅   Repo %s branch %s is up to date 👍👍👍👍👍👍\n", repoUrl, branchName)
 		return nil
 	}
-	
+
 	repoStats, err := AnalyzeRepoCommitLogs(insight, repoPath, []string{branchName})
 	if err != nil {
 		log.Printf("❌ Error analyzing repository %s: %v\n", repoPath, err)
@@ -117,9 +117,11 @@ func IsRepoUpToDate(config *Config, repoUrl string, repoPath string, branchName 
 	}
 
 	cacheLastestLog, err := GetCommitLogs(&CommitLogFilter{
+		Offset:     0,
+		Limit:      1,
 		RepoUrl:    repoUrl,
 		BranchName: branchName,
-	}, 0, 1)
+	})
 	log.Printf("    ⏳ ----Cache latest log:%s %s %v\n", repoUrl, branchName, cacheLastestLog)
 
 	if err != nil {

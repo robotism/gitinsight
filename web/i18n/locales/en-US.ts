@@ -56,7 +56,7 @@ export default defineI18nLocale(async (locale) => {
     monthBeforeLast: "Before Last Month",
 
     autoRefresh: "Auto Refresh",
-    
+
     dashboard: {
       todayProjects: "Today Projects",
       todayRanking: "Today Ranking",

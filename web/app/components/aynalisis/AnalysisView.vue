@@ -8,7 +8,8 @@
         <div class="w-full h-[calc(100vh-130px)] overflow-y-scroll flex flex-col items-center">
             <div class="w-full flex flex-col" :class="$q.screen.gt.sm ? 'max-w-[700px]' : 'w-full'">
                 <!-- 贡献者 -->
-                <AuthorRanking :authors="authors" :since="since" sortBy="effectives" sortDirection="desc" />
+                <AuthorRanking :class="$q.screen.gt.sm ? 'max-w-[700px]' : 'w-full'" :authors="authors" :since="since"
+                    :until="until" sortBy="effectives" sortDirection="desc" />
 
                 <!-- 提交频率图-->
                 <PeriodCard :commits="commitsPeriodDay" :year="since" :title="$t('commitPeriod')" />
@@ -40,10 +41,9 @@ import HeatMapCard from "~/components/aynalisis/HeatMapCard.vue";
 
 const api = useApi()
 
-const i18n = useI18n()
-
 const authors = ref<any[]>([]);
 const since = ref("");
+const until = ref("");
 const commitsAll = ref<any[]>([]);
 const commitsFix = ref<any[]>([]);
 const commitsFeat = ref<any[]>([]);
@@ -67,6 +67,7 @@ const getData = async () => {
     api.getRanking(props.filter).then((resp: any) => {
         authors.value = resp?.data || [];
         since.value = resp?.meta?.since || since.value;
+        until.value = resp?.meta?.until || until.value;
     });
     api.getCommitHeatmap({
         ...props.filter,
@@ -74,6 +75,7 @@ const getData = async () => {
     }).then((resp: any) => {
         commitsAll.value = resp?.data || [];
         since.value = resp?.meta?.since || since.value;
+        until.value = resp?.meta?.until || until.value;
     });
     api.getCommitHeatmap({
         ...props.filter,
@@ -81,6 +83,7 @@ const getData = async () => {
     }).then((resp: any) => {
         commitsFix.value = resp?.data || [];
         since.value = resp?.meta?.since || since.value;
+        until.value = resp?.meta?.until || until.value;
     });
     api.getCommitHeatmap({
         ...props.filter,
@@ -88,6 +91,7 @@ const getData = async () => {
     }).then((resp: any) => {
         commitsFeat.value = resp?.data || [];
         since.value = resp?.meta?.since || since.value;
+        until.value = resp?.meta?.until || until.value;
     });
     api.getCommitHeatmap({
         ...props.filter,
@@ -96,6 +100,7 @@ const getData = async () => {
     }).then((resp: any) => {
         commitsMerge.value = resp?.data || [];
         since.value = resp?.meta?.since || since.value;
+        until.value = resp?.meta?.until || until.value;
     });
     api.getCommitPeriod({
         ...props.filter,
@@ -103,6 +108,7 @@ const getData = async () => {
     }).then((resp: any) => {
         commitsPeriodDay.value = resp?.data || [];
         since.value = resp?.meta?.since || since.value;
+        until.value = resp?.meta?.until || until.value;
     });
     api.getCommitPeriod({
         ...props.filter,
@@ -110,6 +116,7 @@ const getData = async () => {
     }).then((resp: any) => {
         commitsPeriodWeek.value = resp?.data || [];
         since.value = resp?.meta?.since || since.value;
+        until.value = resp?.meta?.until || until.value;
     });
 };
 

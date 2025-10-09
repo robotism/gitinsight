@@ -1,1 +1,0 @@
-import{aU as l,co as s,r as e}from"#entry";const c=()=>{const a=l(),o=s();return{links:e([{label:"nav.home",icon:"la la-compass",root:!0,click:()=>{a.push(o("/"))}},{label:"nav.analyzer",icon:"la la-heartbeat",click:()=>{a.push(o("/analyzer"))}},{label:"nav.contributors",icon:"la la-users",click:()=>{a.push(o("/contributors"))}}])}};export{c as u};

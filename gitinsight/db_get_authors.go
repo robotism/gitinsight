@@ -22,7 +22,7 @@ type AuthorDTO struct {
 	Commits  int `json:"commits" bun:",notnull"`
 }
 
-func GetAuthors(since string, until string) ([]AuthorDTO, error) {
+func GetAuthors(filter *CommitLogFilter) ([]AuthorDTO, error) {
 	if gdb == nil {
 		return nil, errors.New("database not initialized")
 	}
@@ -33,15 +33,9 @@ func GetAuthors(since string, until string) ([]AuthorDTO, error) {
 	// 先构建子查询，去重 commit_hash
 	subQuery := gdb.NewSelect().
 		Model((*CommitLogModel)(nil)).
-		ColumnExpr("DISTINCT commit_hash, nickname, author_name, author_email, additions, deletions, effectives, repo_url, date").
-		Where("is_merge = 0")
+		ColumnExpr("DISTINCT commit_hash, nickname, author_name, author_email, additions, deletions, effectives, repo_url, date")
 
-	if since != "" {
-		subQuery.Where("date >= ?", since)
-	}
-	if until != "" {
-		subQuery.Where("date <= ?", until)
-	}
+	filter.Query(subQuery)
 
 	// 外层统计
 	query := gdb.NewSelect().

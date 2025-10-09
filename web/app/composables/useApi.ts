@@ -17,81 +17,62 @@ export const useApi = () => {
     }
   })();
 
+  const filterToParams = (filter?: any, offset?: number, limit?: number) => {
+    const target: any = {
+      offset: offset || filter?.offset,
+      limit: limit || filter?.limit,
+      since: filter?.since ? filter?.since + " 00:00:00" : "",
+      until: filter?.until ? filter?.until + " 23:59:59" : "",
+      repos: filter?.repos?.join?.(",") || "",
+      branches: filter?.branches?.join?.(",") || "",
+      authors: filter?.authors?.join?.(",") || "",
+      messageType: filter?.messageType || "",
+      isMerge: filter?.isMerge || "",
+      period: filter?.period || "day",
+      leEffective: filter?.leEffective || "",
+      geEffective: filter?.geEffective || "",
+    };
+    return Object.keys(target)
+      .filter((key: string) => target[key] !== "")
+      .reduce((obj: any, key: string) => {
+        obj[key] = target[key];
+        return obj;
+      }, {});
+  };
+
   const getCommitLogs = async (filter: any, offset: number, limit: number) => {
     return await $fetch(baseUrl + "/v1/commits", {
-      params: {
-        since: filter.since || "",
-        until: filter.until || "",
-        repos: filter.repos?.join?.(",") || "",
-        branches: filter.branches?.join?.(",") || "",
-        authors: filter.authors?.join?.(",") || "",
-        offset: offset,
-        limit: limit,
-      },
+      params: filterToParams(filter, offset, limit),
     });
   };
 
   const getContributors = async (filter?: any) => {
     return await $fetch(baseUrl + "/v1/contributors", {
-      params: {
-        since: filter?.since || "",
-        until: filter?.until || "",
-        repos: filter?.repos?.join?.(",") || "",
-        branches: filter?.branches?.join?.(",") || "",
-        authors: filter?.authors?.join?.(",") || "",
-      },
+      params: filterToParams(filter),
     });
   };
 
   const getRepoBranches = async (filter?: any) => {
     return await $fetch(baseUrl + "/v1/branches", {
-      params: {
-        since: filter?.since || "",
-        until: filter?.until || "",
-        repos: filter?.repos?.join?.(",") || "",
-      },
+      params: filterToParams(filter),
     });
   };
 
   const getRanking = async (filter?: any) => {
     return await $fetch(baseUrl + "/v1/ranking", {
-      params: {
-        since: filter?.since || "",
-        until: filter?.until || "",
-        repos: filter?.repos?.join?.(",") || "",
-        branches: filter?.branches?.join?.(",") || "",
-        authors: filter?.authors?.join?.(",") || "",
-      },
+      params: filterToParams(filter),
     });
   };
 
   const getCommitHeatmap = async (filter?: any) => {
     return await $fetch(baseUrl + "/v1/heatmap", {
-      params: {
-        since: filter?.since || "",
-        until: filter?.until || "",
-        repos: filter?.repos?.join?.(",") || "",
-        branches: filter?.branches?.join?.(",") || "",
-        authors: filter?.authors?.join?.(",") || "",
-        messageType: filter?.messageType || "",
-        isMerge: filter?.isMerge || "",
-      },
+      params: filterToParams(filter),
     });
   };
 
   const getCommitPeriod = async (filter?: any) => {
     return await $fetch(baseUrl + "/v1/period", {
-      params: {
-        since: filter?.since || "",
-        until: filter?.until || "",
-        repos: filter?.repos?.join?.(",") || "",
-        branches: filter?.branches?.join?.(",") || "",
-        authors: filter?.authors?.join?.(",") || "",
-        messageType: filter?.messageType || "",
-        isMerge: filter?.isMerge || "",
-        period: filter?.period || "day",
-        groupByNickname: filter?.groupByNickname || "",
-      },
+      params: filterToParams(filter),
     });
   };
 

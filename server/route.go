@@ -15,104 +15,20 @@ func RegisterRoute(g *gin.RouterGroup) {
 	g.GET("/period", GetCommitPeriod)
 }
 
-func GetRanking(c *gin.Context) {
+func getFilterFromContext(c *gin.Context) *gitinsight.CommitLogFilter {
 	since := c.Query("since")
 	until := c.Query("until")
 	repos := c.Query("repos")
 	branches := c.Query("branches")
 	authors := c.Query("authors")
-	if since == "" {
-		since = GetConfig().Insight.Since
-	}
-	ranking, err := gitinsight.GetRanking(&gitinsight.CommitLogFilter{
-		DateFrom:   since,
-		DateTo:     until,
-		RepoUrl:    repos,
-		BranchName: branches,
-		Nickname:   authors,
-	})
-	if err != nil {
-		c.JSON(200, gin.H{
-			"code":    500,
-			"message": err.Error(),
-			"data":    nil,
-		})
-	} else {
-		c.JSON(200, gin.H{
-			"code":    200,
-			"message": "success",
-			"meta": gin.H{
-				"since": since,
-				"until": until,
-			},
-			"data": ranking,
-		})
-	}
-}
+	isMerge := c.Query("isMerge")
+	messageType := c.Query("messageType")
+	period := c.Query("period")
 
-func GetRepoBranches(c *gin.Context) {
-	since := c.Query("since")
-	until := c.Query("until")
-	if since == "" {
-		since = GetConfig().Insight.Since
-	}
-	repo := c.Query("repo")
-	branches, err := gitinsight.GetRepoBranches(&gitinsight.CommitLogFilter{
-		DateFrom: since,
-		DateTo:   until,
-		RepoUrl:  repo,
-	})
-	if err != nil {
-		c.JSON(200, gin.H{
-			"code":    500,
-			"message": err.Error(),
-			"data":    nil,
-		})
-	} else {
-		c.JSON(200, gin.H{
-			"code":    200,
-			"message": "success",
-			"meta": gin.H{
-				"since": since,
-				"until": until,
-			},
-			"data": branches,
-		})
-	}
-}
+	commitHash := c.Query("commitHash")
+	leEffective := c.Query("leEffective")
+	geEffective := c.Query("geEffective")
 
-func GetContributors(c *gin.Context) {
-	since := c.Query("since")
-	until := c.Query("until")
-	if since == "" {
-		since = GetConfig().Insight.Since
-	}
-	contributors, err := gitinsight.GetAuthors(since, until)
-	if err != nil {
-		c.JSON(200, gin.H{
-			"code":    500,
-			"message": err.Error(),
-			"data":    nil,
-		})
-	} else {
-		c.JSON(200, gin.H{
-			"code":    200,
-			"message": "success",
-			"meta": gin.H{
-				"since": since,
-				"until": until,
-			},
-			"data": contributors,
-		})
-	}
-}
-
-func GetCommits(c *gin.Context) {
-	since := c.Query("since")
-	until := c.Query("until")
-	repos := c.Query("repos")
-	branches := c.Query("branches")
-	authors := c.Query("authors")
 	offset, err := xcast.ToIntE(c.Query("offset"))
 	if err != nil {
 		offset = 0
@@ -124,28 +40,93 @@ func GetCommits(c *gin.Context) {
 	if since == "" {
 		since = GetConfig().Insight.Since
 	}
-	count, err := gitinsight.CountCommitLogs(&gitinsight.CommitLogFilter{
-		DateFrom:   since,
-		DateTo:     until,
-		RepoUrl:    repos,
-		BranchName: branches,
-		Nickname:   authors,
-	})
+	filter := &gitinsight.CommitLogFilter{
+		Offset:      offset,
+		Limit:       limit,
+		DateFrom:    since,
+		DateTo:      until,
+		RepoUrl:     repos,
+		BranchName:  branches,
+		CommitHash:  commitHash,
+		Nickname:    authors,
+		IsMerge:     isMerge,
+		MessageType: messageType,
+		Period:      period,
+		LeEffective: leEffective,
+		GeEffective: geEffective,
+	}
+	return filter
+}
+
+func GetRanking(c *gin.Context) {
+	filter := getFilterFromContext(c)
+	ranking, err := gitinsight.GetRanking(filter)
 	if err != nil {
 		c.JSON(200, gin.H{
 			"code":    500,
 			"message": err.Error(),
 			"data":    nil,
 		})
-		return
+	} else {
+		c.JSON(200, gin.H{
+			"code":    200,
+			"message": "success",
+			"meta": gin.H{
+				"since": filter.DateFrom,
+				"until": filter.DateTo,
+			},
+			"data": ranking,
+		})
 	}
-	commits, err := gitinsight.GetCommitLogs(&gitinsight.CommitLogFilter{
-		DateFrom:   since,
-		DateTo:     until,
-		RepoUrl:    repos,
-		BranchName: branches,
-		Nickname:   authors,
-	}, offset, limit)
+}
+
+func GetRepoBranches(c *gin.Context) {
+	filter := getFilterFromContext(c)
+	branches, err := gitinsight.GetRepoBranches(filter)
+	if err != nil {
+		c.JSON(200, gin.H{
+			"code":    500,
+			"message": err.Error(),
+			"data":    nil,
+		})
+	} else {
+		c.JSON(200, gin.H{
+			"code":    200,
+			"message": "success",
+			"meta": gin.H{
+				"since": filter.DateFrom,
+				"until": filter.DateTo,
+			},
+			"data": branches,
+		})
+	}
+}
+
+func GetContributors(c *gin.Context) {
+	filter := getFilterFromContext(c)
+	contributors, err := gitinsight.GetAuthors(filter)
+	if err != nil {
+		c.JSON(200, gin.H{
+			"code":    500,
+			"message": err.Error(),
+			"data":    nil,
+		})
+	} else {
+		c.JSON(200, gin.H{
+			"code":    200,
+			"message": "success",
+			"meta": gin.H{
+				"since": filter.DateFrom,
+				"until": filter.DateTo,
+			},
+			"data": contributors,
+		})
+	}
+}
+
+func GetCommits(c *gin.Context) {
+	filter := getFilterFromContext(c)
+	count, err := gitinsight.CountCommitLogs(filter)
 
 	config := []gitinsight.Auth{}
 	for _, auth := range GetConfig().Insight.Auths {
@@ -161,15 +142,24 @@ func GetCommits(c *gin.Context) {
 			"message": err.Error(),
 			"data":    nil,
 		})
+		return
+	}
+	commits, err := gitinsight.GetCommitLogs(filter)
+	if err != nil {
+		c.JSON(200, gin.H{
+			"code":    500,
+			"message": err.Error(),
+			"data":    nil,
+		})
 	} else {
 		c.JSON(200, gin.H{
 			"code":    200,
 			"message": "success",
 			"meta": gin.H{
-				"offset": offset,
-				"limit":  limit,
-				"since":  since,
-				"until":  until,
+				"offset": filter.Offset,
+				"limit":  filter.Limit,
+				"since":  filter.DateFrom,
+				"until":  filter.DateTo,
 				"total":  count,
 				"config": config,
 			},
@@ -179,25 +169,8 @@ func GetCommits(c *gin.Context) {
 }
 
 func GetCommitHeatmap(c *gin.Context) {
-	since := c.Query("since")
-	until := c.Query("until")
-	repos := c.Query("repos")
-	branches := c.Query("branches")
-	authors := c.Query("authors")
-	messageType := c.Query("messageType")
-	isMerge := c.Query("isMerge")
-	if since == "" {
-		since = GetConfig().Insight.Since
-	}
-	data, err := gitinsight.GetCommitHeatmapData(&gitinsight.CommitLogFilter{
-		DateFrom:    since,
-		DateTo:      until,
-		RepoUrl:     repos,
-		BranchName:  branches,
-		Nickname:    authors,
-		MessageType: messageType,
-		IsMerge:     isMerge,
-	})
+	filter := getFilterFromContext(c)
+	data, err := gitinsight.GetCommitHeatmapData(filter)
 	if err != nil {
 		c.JSON(200, gin.H{
 			"code":    500,
@@ -210,8 +183,8 @@ func GetCommitHeatmap(c *gin.Context) {
 			"code":    200,
 			"message": "success",
 			"meta": gin.H{
-				"since": since,
-				"until": until,
+				"since": filter.DateFrom,
+				"until": filter.DateTo,
 			},
 			"data": data,
 		})
@@ -219,27 +192,8 @@ func GetCommitHeatmap(c *gin.Context) {
 }
 
 func GetCommitPeriod(c *gin.Context) {
-	since := c.Query("since")
-	until := c.Query("until")
-	repos := c.Query("repos")
-	branches := c.Query("branches")
-	authors := c.Query("authors")
-	messageType := c.Query("messageType")
-	isMerge := c.Query("isMerge")
-	period := c.Query("period")
-
-	if since == "" {
-		since = GetConfig().Insight.Since
-	}
-	data, err := gitinsight.GetCommitStatsByPeriodAndUser(&gitinsight.CommitLogFilter{
-		DateFrom:    since,
-		DateTo:      until,
-		RepoUrl:     repos,
-		BranchName:  branches,
-		Nickname:    authors,
-		MessageType: messageType,
-		IsMerge:     isMerge,
-	}, period)
+	filter := getFilterFromContext(c)
+	data, err := gitinsight.GetCommitStatsByPeriodAndUser(filter)
 	if err != nil {
 		c.JSON(200, gin.H{
 			"code":    500,
@@ -252,8 +206,8 @@ func GetCommitPeriod(c *gin.Context) {
 			"code":    200,
 			"message": "success",
 			"meta": gin.H{
-				"since": since,
-				"until": until,
+				"since": filter.DateFrom,
+				"until": filter.DateTo,
 			},
 			"data": data,
 		})
