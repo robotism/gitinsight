@@ -1,6 +1,11 @@
 <template>
   <div class="w-full h-full flex flex-col justify-center items-center p-4">
-    <AuthorRanking class="q-pa-md w-[80vw] max-w-[1080px]"  :authors="rows" :since="since" />
+
+    <div class="w-full h-full flex flex-col justify-center items-center p-4">
+      <q-toggle class="text-xs ml-auto mr-32" dense v-model="autoRefresh" :label="$t('autoRefresh')" />
+    </div>
+
+    <AuthorRanking class="q-pa-md w-[80vw] max-w-[1080px]" :authors="rows" :since="since" />
 
     <!-- 提交频率图-->
     <div class="q-pa-md w-[80vw] max-w-[1080px]" v-for="(item, index) in commitsPeriods" :key="index">
@@ -46,9 +51,25 @@ const getCommitsPeriods = async () => {
   }
 };
 
-onMounted(() => {
+const refreshData = () => {
   getContributors();
-});
+}
+
+const interval = ref()
+const autoRefresh = ref(true)
+
+onMounted(() => {
+  refreshData()
+  interval.value = setInterval(() => {
+    if (autoRefresh.value) {
+      refreshData()
+    }
+  }, 30000)
+})
+
+onUnmounted(() => {
+  clearInterval(interval.value)
+})
 
 useSeoMeta({
   title: i18n.t("contributors"),

@@ -55,6 +55,8 @@ export default defineI18nLocale(async (locale) => {
     monthLast: "上月",
     monthBeforeLast: "上上月",
 
+    autoRefresh: "自动刷新",
+    
     dashboard: {
       todayProjects: "今日贡献项目",
       todayRanking: "今日贡献排行",

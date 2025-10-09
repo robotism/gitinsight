@@ -1,5 +1,8 @@
 <template>
-  <h6 class="w-full flex nowrap content-center">📝 {{ $t('commitLogs') }}</h6>
+  <h6 class="w-full flex nowrap content-center">
+    📝 {{ $t('commitLogs') }}
+    <q-toggle class="text-xs ml-16" dense v-model="autoRefresh" :label="$t('autoRefresh')" />
+  </h6>
   <q-infinite-scroll class="w-full h-[calc(100vh-130px)] overflow-auto" :offset="50" @load="onLoad">
     <q-item class="w-full" v-for="(c, index) in commitLogs" :key="index">
       <div class="w-full flex flex-col cursor-pointer" @click="gotoCommitUrl(c)">
@@ -87,5 +90,27 @@ watch(() => props.filter, (val) => {
   offset.value = 0
   onLoad()
 }, { deep: true })
+
+
+const refreshData = () => {
+  offset.value = 0
+  onLoad()
+}
+
+const interval = ref()
+const autoRefresh = ref(true)
+
+onMounted(() => {
+  refreshData()
+  interval.value = setInterval(() => {
+    if (autoRefresh.value) {
+      refreshData()
+    }
+  }, 30000)
+})
+
+onUnmounted(() => {
+  clearInterval(interval.value)
+})
 
 </script>

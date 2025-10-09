@@ -27,7 +27,10 @@ func TestGetRepoBranches(t *testing.T) {
 
 	since := "2025-09-01 00:00:00"
 	until := "2025-09-30 23:59:59"
-	branches, err := gitinsight.GetRepoBranches(since, until, "")
+	branches, err := gitinsight.GetRepoBranches(&gitinsight.CommitLogFilter{
+		DateFrom: since,
+		DateTo:   until,
+	})
 	if err != nil {
 		t.Fatal(err)
 	}

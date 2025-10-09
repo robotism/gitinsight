@@ -24,7 +24,13 @@ func GetRanking(c *gin.Context) {
 	if since == "" {
 		since = GetConfig().Insight.Since
 	}
-	ranking, err := gitinsight.GetRanking(since, until, repos, branches, authors)
+	ranking, err := gitinsight.GetRanking(&gitinsight.CommitLogFilter{
+		DateFrom:   since,
+		DateTo:     until,
+		RepoUrl:    repos,
+		BranchName: branches,
+		Nickname:   authors,
+	})
 	if err != nil {
 		c.JSON(200, gin.H{
 			"code":    500,
@@ -51,7 +57,11 @@ func GetRepoBranches(c *gin.Context) {
 		since = GetConfig().Insight.Since
 	}
 	repo := c.Query("repo")
-	branches, err := gitinsight.GetRepoBranches(since, until, repo)
+	branches, err := gitinsight.GetRepoBranches(&gitinsight.CommitLogFilter{
+		DateFrom: since,
+		DateTo:   until,
+		RepoUrl:  repo,
+	})
 	if err != nil {
 		c.JSON(200, gin.H{
 			"code":    500,

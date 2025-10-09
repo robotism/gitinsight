@@ -5,6 +5,7 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/chaos-plus/chaos-plus-toolx/xcast"
 	"github.com/uptrace/bun"
 )
 
@@ -23,7 +24,7 @@ type Ranking struct {
 	Commits  int `json:"commits" bun:",notnull"`
 }
 
-func GetRanking(since string, until string, repos string, branches string, authors string) ([]Ranking, error) {
+func GetRanking(filter *CommitLogFilter) ([]Ranking, error) {
 	if gdb == nil {
 		return nil, errors.New("database not initialized")
 	}
@@ -34,20 +35,31 @@ func GetRanking(since string, until string, repos string, branches string, autho
 		ColumnExpr("DISTINCT commit_hash, nickname, author_name, author_email, additions, deletions, effectives, repo_url, date").
 		Where("is_merge = 0")
 
-	if len(repos) > 0 {
-		subQuery.Where("repo_url IN (?)", bun.In(strings.Split(repos, ",")))
+	if len(filter.RepoUrl) > 0 {
+		subQuery.Where("repo_url IN (?)", bun.In(strings.Split(filter.RepoUrl, ",")))
 	}
-	if len(branches) > 0 {
-		subQuery.Where("branch_name IN (?)", bun.In(strings.Split(branches, ",")))
+	if len(filter.BranchName) > 0 {
+		subQuery.Where("branch_name IN (?)", bun.In(strings.Split(filter.BranchName, ",")))
 	}
-	if len(authors) > 0 {
-		subQuery.Where("nickname IN (?)", bun.In(strings.Split(authors, ",")))
+	if len(filter.Nickname) > 0 {
+		subQuery.Where("nickname IN (?)", bun.In(strings.Split(filter.Nickname, ",")))
 	}
-	if since != "" {
-		subQuery.Where("date >= ?", since)
+	if filter.DateFrom != "" {
+		subQuery.Where("date >= ?", filter.DateFrom)
 	}
-	if until != "" {
-		subQuery.Where("date <= ?", until)
+	if filter.DateTo != "" {
+		subQuery.Where("date <= ?", filter.DateTo)
+	}
+
+	if filter.IsMerge != "" {
+		values := strings.Split(filter.IsMerge, ",")
+		nums := make([]int, len(values))
+		for i, v := range values {
+			nums[i] = xcast.ToInt(v)
+		}
+		subQuery.Where("is_merge IN (?)", bun.In(nums))
+	} else {
+		subQuery.Where("is_merge = 0")
 	}
 
 	// 外层再统计

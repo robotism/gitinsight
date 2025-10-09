@@ -1,9 +1,12 @@
 <template>
 
     <div class="w-full pl-4 pr-4 flex-col ">
-        <h6 class="w-full content-center">{{ $t('analysisView') }}</h6>
+        <h6 class="w-full content-center">
+            {{ $t('analysisView') }}
+            <q-toggle class="text-xs ml-16" dense v-model="autoRefresh" :label="$t('autoRefresh')" />
+        </h6>
         <div class="w-full h-[calc(100vh-130px)] overflow-y-scroll flex flex-col items-center">
-            <div class="w-full flex flex-col" :class="$q.screen.gt.sm?'max-w-[700px]':'w-full'">
+            <div class="w-full flex flex-col" :class="$q.screen.gt.sm ? 'max-w-[700px]' : 'w-full'">
                 <!-- 贡献者 -->
                 <AuthorRanking :authors="authors" :since="since" sortBy="effectives" sortDirection="desc" />
 
@@ -109,8 +112,26 @@ const getData = async () => {
         since.value = resp?.meta?.since || since.value;
     });
 };
+
+const refreshData = () => {
+    getData()
+}
+
+const interval = ref()
+const autoRefresh = ref(true)
+
 onMounted(() => {
-    getData();
-});
+    refreshData()
+    interval.value = setInterval(() => {
+        if (autoRefresh.value) {
+            refreshData()
+        }
+    }, 30000)
+})
+
+onUnmounted(() => {
+    clearInterval(interval.value)
+})
+
 
 </script>

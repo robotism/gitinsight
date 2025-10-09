@@ -1,4 +1,7 @@
 <template>
+  <div class="w-full h-full flex flex-col justify-center items-center p-4">
+    <q-toggle class="text-xs ml-auto mr-32" dense v-model="autoRefresh" :label="$t('autoRefresh')" />
+  </div>
   <div class="w-full content-center">
     <div class="max-w-[1600px] flex flex-row content-center">
 
@@ -174,12 +177,15 @@ const refreshData = () => {
   })
 }
 
-const interval = ref(null)
+const interval = ref()
+const autoRefresh = ref(true)
 
 onMounted(() => {
   refreshData()
   interval.value = setInterval(() => {
-    refreshData()
+    if (autoRefresh.value) {
+      refreshData()
+    }
   }, 30000)
 })
 
