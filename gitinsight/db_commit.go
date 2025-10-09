@@ -44,7 +44,7 @@ type CommitLogFilter struct {
 	BranchName string `json:"branchName" bun:"branch_name"`
 	CommitHash string `json:"commitHash" bun:"commit_hash"`
 
-	IsMerge     string   `json:"isMerge" bun:"is_merge"`
+	IsMerge     string `json:"isMerge" bun:"is_merge"`
 	MessageType string `json:"messageType" bun:"message_type"`
 
 	DateFrom string `json:"dateFrom" bun:"date_from"`

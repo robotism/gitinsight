@@ -25,15 +25,16 @@ type Config struct {
 }
 
 type Auth struct {
-	Domain   string `mapstructure:"domain" description:"domain"`
-	Username string `mapstructure:"username" description:"username"`
-	Password string `mapstructure:"password" description:"password"`
+	Domain        string `json:"domain" mapstructure:"domain" description:"domain"`
+	Username      string `json:"username,omitempty" mapstructure:"username" description:"username"`
+	Password      string `json:"password,omitempty" mapstructure:"password" description:"password"`
+	CommitUrlTmpl string `json:"commitUrlTmpl,omitempty" mapstructure:"commit_url_tmpl" description:"commit_url_tmpl"`
 }
 
 type Repo struct {
-	Url      string `mapstructure:"url" description:"url"`
-	User     string `mapstructure:"user" description:"user"`
-	Password string `mapstructure:"password" description:"password"`
+	Url      string `json:"url" mapstructure:"url" description:"url"`
+	User     string `json:"user" mapstructure:"user" description:"user"`
+	Password string `json:"password" mapstructure:"password" description:"password"`
 }
 
 type Cache struct {

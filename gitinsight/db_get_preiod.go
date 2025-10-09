@@ -28,7 +28,7 @@ func GetCommitStatsByPeriodAndUser(filter *CommitLogFilter, period string) ([]Co
 	ctx := context.Background()
 	var results []CommitPeriodStatItem
 
-	// 根据数据库类型生成 period 表达式
+	// === 根据数据库类型生成 period 表达式 ===
 	var periodExpr string
 	dbType := gdb.Dialect().Name()
 
@@ -45,7 +45,6 @@ func GetCommitStatsByPeriodAndUser(filter *CommitLogFilter, period string) ([]Co
 			return nil, errors.New("unsupported db dialect for daily stats")
 		}
 	case "week", "weekly":
-		// 周日日期
 		switch dbType {
 		case dialect.MySQL:
 			periodExpr = "DATE_FORMAT(DATE_ADD(date, INTERVAL (6 - WEEKDAY(date)) DAY), '%Y-%m-%d')" // 周日
@@ -67,46 +66,44 @@ func GetCommitStatsByPeriodAndUser(filter *CommitLogFilter, period string) ([]Co
 		default:
 			return nil, errors.New("unsupported db dialect for monthly stats")
 		}
-
 	default:
 		return nil, errors.New("invalid period, must be one of: day, week, month")
 	}
 
-	// 构建查询
-	query := gdb.NewSelect().Model((*CommitLogModel)(nil)).
-		ColumnExpr("nickname").
-		ColumnExpr("COUNT(DISTINCT commit_hash) AS commits"). // 去重 commit
-		ColumnExpr("SUM(additions) AS additions").
-		ColumnExpr("SUM(deletions) AS deletions").
-		ColumnExpr("SUM(effectives) AS effectives").
-		ColumnExpr(periodExpr + " AS period").
-		GroupExpr(periodExpr + ", nickname").
-		OrderExpr(periodExpr + " ASC")
+	// === 构建子查询，按 commit_hash 去重 ===
+	subq := gdb.NewSelect().
+		Model((*CommitLogModel)(nil)).
+		ColumnExpr("DISTINCT commit_hash").
+		Column("nickname").
+		Column("date").
+		Column("additions").
+		Column("deletions").
+		Column("effectives")
 
-	// 过滤条件
+	// === 加入过滤条件 ===
 	if filter.RepoUrl != "" {
-		query.Where("repo_url IN (?)", bun.In(strings.Split(filter.RepoUrl, ",")))
+		subq.Where("repo_url IN (?)", bun.In(strings.Split(filter.RepoUrl, ",")))
 	}
 	if filter.BranchName != "" {
-		query.Where("branch_name IN (?)", bun.In(strings.Split(filter.BranchName, ",")))
+		subq.Where("branch_name IN (?)", bun.In(strings.Split(filter.BranchName, ",")))
 	}
 	if filter.AuthorName != "" {
-		query.Where("author_name IN (?)", bun.In(strings.Split(filter.AuthorName, ",")))
+		subq.Where("author_name IN (?)", bun.In(strings.Split(filter.AuthorName, ",")))
 	}
 	if filter.AuthorEmail != "" {
-		query.Where("author_email IN (?)", bun.In(strings.Split(filter.AuthorEmail, ",")))
+		subq.Where("author_email IN (?)", bun.In(strings.Split(filter.AuthorEmail, ",")))
 	}
 	if filter.Nickname != "" {
-		query.Where("nickname IN (?)", bun.In(strings.Split(filter.Nickname, ",")))
+		subq.Where("nickname IN (?)", bun.In(strings.Split(filter.Nickname, ",")))
 	}
 	if filter.DateFrom != "" {
-		query.Where("date >= ?", filter.DateFrom)
+		subq.Where("date >= ?", filter.DateFrom)
 	}
 	if filter.DateTo != "" {
-		query.Where("date <= ?", filter.DateTo)
+		subq.Where("date <= ?", filter.DateTo)
 	}
 	if filter.MessageType != "" {
-		query.Where("message_type IN (?)", bun.In(strings.Split(filter.MessageType, ",")))
+		subq.Where("message_type IN (?)", bun.In(strings.Split(filter.MessageType, ",")))
 	}
 	if filter.IsMerge != "" {
 		values := strings.Split(filter.IsMerge, ",")
@@ -114,12 +111,24 @@ func GetCommitStatsByPeriodAndUser(filter *CommitLogFilter, period string) ([]Co
 		for i, v := range values {
 			nums[i] = xcast.ToInt(v)
 		}
-		query.Where("is_merge IN (?)", bun.In(nums))
+		subq.Where("is_merge IN (?)", bun.In(nums))
 	} else {
-		query.Where("is_merge = 0")
+		subq.Where("is_merge = 0")
 	}
 
-	// 执行查询
+	// === 外层统计 ===
+	query := gdb.NewSelect().
+		TableExpr("(?) AS t", subq).
+		ColumnExpr("nickname").
+		ColumnExpr("COUNT(commit_hash) AS commits"). // 子查询已 distinct，不需要再 DISTINCT
+		ColumnExpr("SUM(additions) AS additions").
+		ColumnExpr("SUM(deletions) AS deletions").
+		ColumnExpr("SUM(effectives) AS effectives").
+		ColumnExpr(periodExpr + " AS period").
+		GroupExpr("period, nickname").
+		OrderExpr("period ASC")
+
+	// === 执行查询 ===
 	if err := query.Scan(ctx, &results); err != nil {
 		return nil, err
 	}

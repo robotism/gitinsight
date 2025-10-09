@@ -137,6 +137,14 @@ func GetCommits(c *gin.Context) {
 		Nickname:   authors,
 	}, offset, limit)
 
+	config := []gitinsight.Auth{}
+	for _, auth := range GetConfig().Insight.Auths {
+		config = append(config, gitinsight.Auth{
+			Domain:        auth.Domain,
+			CommitUrlTmpl: auth.CommitUrlTmpl,
+		})
+	}
+
 	if err != nil {
 		c.JSON(200, gin.H{
 			"code":    500,
@@ -153,6 +161,7 @@ func GetCommits(c *gin.Context) {
 				"since":  since,
 				"until":  until,
 				"total":  count,
+				"config": config,
 			},
 			"data": commits,
 		})
