@@ -19,8 +19,20 @@
                     </q-card>
                 </q-expansion-item>
 
+                <q-expansion-item class="w-full group3 nowrap" dense expand-separator default-opened icon="👥"
+                    :label="$t('contributors')" header-class="text-purple">
+                    <q-card class="w-full pl-2 pb-2 max-h-[20vh] overflow-y-auto">
+                        <q-option-group class="w-full text-nowrap flex-wrap" dense v-model="authorSelections" :options="authorOptions"
+                            color="purple" type="checkbox">
+                            <template v-slot:label="opt">
+                                <span class="text-purple text-[8px]">{{ opt.label }}</span>
+                            </template>
+                        </q-option-group>
+                    </q-card>
+                </q-expansion-item>
+                
                 <q-expansion-item class="w-full group1" dense expand-separator default-opened icon="🌿" :label="$t('repos')">
-                    <q-card class="w-full pl-2 pb-2">
+                    <q-card class="w-full pl-2 pb-2 max-h-[20vh] overflow-y-auto">
                         <q-option-group class="w-full" dense v-model="repoSelections" :options="repoOptions"
                             color="green" type="checkbox">
                             <template v-slot:label="opt">
@@ -30,17 +42,6 @@
                     </q-card>
                 </q-expansion-item>
 
-                <q-expansion-item class="w-full group3 nowrap" dense expand-separator default-opened icon="👥"
-                    :label="$t('contributors')" header-class="text-purple">
-                    <q-card class="w-full pl-2 pb-2">
-                        <q-option-group class="w-full nowrap" dense v-model="authorSelections" :options="authorOptions"
-                            color="purple" type="checkbox">
-                            <template v-slot:label="opt">
-                                <span class="text-purple text-[8px]">{{ opt.label }}</span>
-                            </template>
-                        </q-option-group>
-                    </q-card>
-                </q-expansion-item>
             </q-list>
         </div>
     </div>
@@ -296,8 +297,8 @@ onMounted(() => {
     font-size: 14px;
     margin-bottom: 4px;
 }
-/* 
+
 :deep(.group3 .q-option-group){
     display: flex;
-} */
+}
 </style>
