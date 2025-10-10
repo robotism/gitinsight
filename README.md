@@ -48,7 +48,7 @@ insight:
 touch config.yaml
 docker run --rm \
 -v $(pwd)/config.yaml:/app/config.yaml \
-ghcr.io/robotism/gitinsight:20251008 \
+ghcr.io/robotism/gitinsight:20251010 \
 ./gitinsight config gen -o -f /app/config.yaml 
 # vim config.yaml
 
@@ -57,7 +57,7 @@ docker run --rm \
 -p 8088:8080 \
 -v $(pwd)/config.yaml:/app/config.yaml \
 -v $(pwd)/.repos:/app/.repos \
-ghcr.io/robotism/gitinsight:20251008
+ghcr.io/robotism/gitinsight:20251010
 
 ```
 
