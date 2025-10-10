@@ -72,7 +72,7 @@ func HandleBranchCommitLogsToDb(insight *Config, repoPath string, branchName str
 		log.Printf("✅   Repo %s branch %s is up to date 👍👍👍👍👍👍\n", repoUrl, branchName)
 		return nil
 	} else {
-		log.Fatal("❌   Repo branch  is not up to date ❌❌❌ \n", repoUrl, branchName)
+		// log.Fatal("❌   Repo branch  is not up to date ❌❌❌ \n", repoUrl, branchName)
 	}
 
 	commitLogs, err := AnalyzeRepoCommitLogs(insight, repoPath, filter)
