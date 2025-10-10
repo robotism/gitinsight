@@ -28,7 +28,7 @@ export const useApi = () => {
       authors: filter?.authors?.join?.(",") || "",
       messageType: filter?.messageType || "",
       isMerge: filter?.isMerge || "",
-      period: filter?.period || "day",
+      period: filter?.period || "",
       leEffective: filter?.leEffective || "",
       geEffective: filter?.geEffective || "",
     };

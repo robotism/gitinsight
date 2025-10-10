@@ -5,7 +5,7 @@
         <div class="w-full flex flex-col">
             <q-list bordered class="rounded-borders">
                 <q-expansion-item class="w-full group1" expand-separator default-opened icon="📅"
-                    :label="$t('timeRange')">
+                    :label="$t('timeRange')" header-class="bg-primary">
                     <q-card class="w-full px-2 pb-2 max-h-[20vh] overflow-y-auto">
                         <div class="flex flex-row flex-wrap">
                             <q-btn class="mx-1" flat size="xs" @click="setDateRange('today')" :label="$t('today')" />
@@ -36,24 +36,28 @@
                 </q-expansion-item>
 
                 <q-expansion-item class="w-full group3 nowrap" dense expand-separator default-opened icon="👥"
-                    :label="$t('contributors')" header-class="text-purple">
+                    :label="$t('contributors')" header-class="bg-primary">
                     <q-card class="w-full pl-2 pb-2 max-h-[20vh] overflow-y-auto">
                         <q-option-group class="w-full text-nowrap flex-wrap" dense v-model="authorSelections"
-                            :options="authorOptions" color="purple" type="checkbox">
+                            :options="authorOptions" type="checkbox">
                             <template v-slot:label="opt">
-                                <span class="text-purple text-[10px]">{{ opt.label }}</span>
+                                <span class="text-[10px]" :style="{ color: hashColor(opt.label) }">{{ opt.label
+                                }}</span>
                             </template>
                         </q-option-group>
                     </q-card>
                 </q-expansion-item>
 
                 <q-expansion-item class="w-full group1" dense expand-separator default-opened icon="🌿"
-                    :label="$t('repos')">
+                    :label="$t('repos')" header-class="bg-primary">
                     <q-card class="w-full pl-2 pb-2 max-h-[20vh] overflow-y-auto">
                         <q-option-group class="w-full" dense v-model="repoSelections" :options="repoOptions"
-                            color="green" type="checkbox">
+                            type="checkbox">
                             <template v-slot:label="opt">
-                                <span class="text-teal text-[8px]">{{ opt.label }}</span>
+                                <span class="text-[8px]"
+                                    :style="{ color: hashColor('#' + opt.label?.split('-')?.[0]?.toLowerCase?.() + '-') }">
+                                    {{ opt.label }}
+                                </span>
                             </template>
                         </q-option-group>
                     </q-card>
@@ -68,6 +72,8 @@
 import { watch } from "vue";
 
 import moment from "moment";
+
+const { hashColor } = useColor();
 
 const api = useApi();
 const i18n = useI18n();

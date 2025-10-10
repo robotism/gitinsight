@@ -5,7 +5,7 @@
       <template v-slot:header="props">
         <q-tr :props="props">
           <q-th v-for="col in props.cols" :key="col.name" :props="props"
-            class="text-purple text-weight-bold text-lg bg-yellow-2">
+            class="text-purple text-weight-bold text-lg bg-accent">
             {{ col.label }}
           </q-th>
         </q-tr>

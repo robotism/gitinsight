@@ -1,0 +1,1 @@
+const F=()=>({hashColor:r=>{if(!r)return"";let o=0;for(let e=0;e<r.length;e++)o=r.charCodeAt(e)+((o<<5)-o);return`hsl(${Math.abs(o)%360}, 70%, 55%)`},rankColor:(r,o)=>{const h=["#FFB300","#FFC107","#FFD700"],e="#60A5FA",n=["#FF7043","#F44336","#D32F2F"];return r<3?h[r]:o>0&&r>=o-3?n[r-(o-3)]:e}});export{F as u};

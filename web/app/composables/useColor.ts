@@ -1,5 +1,7 @@
 export const useColor = () => {
-  const hashColor = (str: string) => {
+
+  const hashColor = (str?: string) => {
+    if (!str) return "";
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       hash = str.charCodeAt(i) + ((hash << 5) - hash);
@@ -7,6 +9,7 @@ export const useColor = () => {
     const hue = Math.abs(hash) % 360;
     return `hsl(${hue}, 70%, 55%)`; // 饱和度70%，亮度55%
   };
+
   const rankColor = (index: number, total: number) => {
     const goldShades = ["#FFB300", "#FFC107", "#FFD700"]; // 前三名金色
     const blueColor = "#60A5FA"; // 中间默认蓝色
