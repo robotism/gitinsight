@@ -39,7 +39,7 @@ type BranchState struct {
 	CommitLogsCount  int
 }
 
-func GetLatestCommitState(repoPath string, filter CheckUpTodateFilter) (*BranchState, error) {
+func GetLocalCommitState(repoPath string, filter CheckUpTodateFilter) (*BranchState, error) {
 	repo, err := git.PlainOpen(repoPath)
 	if err != nil {
 		return nil, err
@@ -74,16 +74,16 @@ func GetLatestCommitState(repoPath string, filter CheckUpTodateFilter) (*BranchS
 		if IsBeforeSince(c, filter) {
 			break
 		}
+
 		isMerge := len(c.ParentHashes) > 1
 
-		if (filter.IsMerge != "1" || filter.IsMerge != "true") && isMerge {
+		if filter.IsMerge == "1" && !isMerge {
 			continue
 		}
-		if (filter.IsMerge != "0" || filter.IsMerge != "false") && !isMerge {
+		if filter.IsMerge == "0" && isMerge {
 			continue
 		}
 
-		log.Printf("    🏷️  11111111111111: %s %s %s %s %s %s %s\n", repoPath, filter.BranchName, c.Hash.String(), c.Author.Name, c.Author.Email, c.Author.When, c.Message)
 		if hashcode == "" {
 			hashcode = c.Hash.String()
 		}

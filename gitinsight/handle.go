@@ -72,7 +72,7 @@ func HandleBranchCommitLogsToDb(insight *Config, repoPath string, branchName str
 		log.Printf("✅   Repo %s branch %s is up to date 👍👍👍👍👍👍\n", repoUrl, branchName)
 		return nil
 	} else {
-		// log.Fatal("❌   Repo branch  is not up to date ❌❌❌ \n", repoUrl, branchName)
+		log.Fatal("❌   Repo branch  is not up to date ❌❌❌ \n", repoUrl, branchName)
 	}
 
 	commitLogs, err := AnalyzeRepoCommitLogs(insight, repoPath, filter)
@@ -113,7 +113,7 @@ func HandleBranchCommitLogsToDb(insight *Config, repoPath string, branchName str
 
 func IsRepoUpToDate(repoPath string, filter CheckUpTodateFilter) (bool, error) {
 
-	localState, err := GetLatestCommitState(repoPath, filter)
+	localState, err := GetLocalCommitState(repoPath, filter)
 	if err != nil {
 		log.Printf("❌ Error getting latest commit state:%s %s %v\n", repoPath, filter.BranchName, err)
 		return false, err
@@ -127,11 +127,13 @@ func IsRepoUpToDate(repoPath string, filter CheckUpTodateFilter) (bool, error) {
 	}
 	log.Printf("    ⏳ ----Cache log count:%s %s %d\n", repoPath, filter.BranchName, cacheCount)
 
-	if localState.CommitLogsCount == 0 {
+	if cacheCount == 0 && localState.CommitLogsCount == 0 {
 		return true, nil
 	}
 
-	cacheLastestLog, err := GetCommitLogs(filter.ToCommitLogFilter())
+	commitLogFilter := filter.ToCommitLogFilter()
+	commitLogFilter.Limit = 1
+	cacheLastestLog, err := GetCommitLogs(commitLogFilter)
 	log.Printf("    ⏳ ----Cache latest log:%s %s %v\n", repoPath, filter.BranchName, cacheLastestLog)
 
 	if err != nil {

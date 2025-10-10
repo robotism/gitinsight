@@ -43,16 +43,6 @@ func (config *Config) SinceTime() time.Time {
 			return t
 		}
 	}
-	fmts = []string{
-		time.DateTime,
-		time.DateOnly,
-	}
-	for _, fmt := range fmts {
-		t, err := time.ParseInLocation(fmt, config.Since, time.Local)
-		if err == nil {
-			return t
-		}
-	}
 	log.Fatalf("Invalid since time: %s", config.Since)
 	return time.Time{}
 }
