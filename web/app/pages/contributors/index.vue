@@ -36,7 +36,7 @@ const getContributors = async () => {
   since.value = resp?.meta?.since || '';
   until.value = resp?.meta?.until || '';
 
-  getCommitsPeriods();
+  // getCommitsPeriods();
 };
 
 const getCommitsPeriods = async () => {
