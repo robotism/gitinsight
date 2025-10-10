@@ -61,7 +61,18 @@ const option = computed(() => {
         yAxis: {
             type: 'category',
             inverse: true,
-            data: sortedBranches.value.map((p) => p.repoBranch),
+            data: sortedBranches.value.map((p) => p.repoBranch).map((p) => {
+                try {
+                    const cherrypick = '/cherry-pick-'
+                    if (p.indexOf(cherrypick) > -1) {
+                        const index = p.indexOf(cherrypick) + cherrypick.length
+                        return p.substring(0, index) + p.substring(index, index + 6)
+                    }
+                } catch (e) {
+                    console.error(e)
+                }
+                return p
+            }),
             axisLabel: { fontSize: 8 }
         },
         series: [

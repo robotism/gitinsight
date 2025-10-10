@@ -5,34 +5,34 @@
   <div class="w-full content-center">
     <div class="max-w-[1600px] flex flex-row content-center">
 
-      <ProjectsCard :class="$q.screen.gt.md ? 'card' : 'card-mobile'" :title="$t('dashboard.todayProjects')"
+      <ProjectsCard :class="$q.screen.gt.sm ? 'card' : 'card-mobile'" :title="$t('dashboard.todayProjects')"
         :projects="todayProjects" />
-      <RankingCard :class="$q.screen.gt.md ? 'card' : 'card-mobile'" :title="$t('dashboard.todayRanking')"
+      <RankingCard :class="$q.screen.gt.sm ? 'card' : 'card-mobile'" :title="$t('dashboard.todayRanking')"
         :ranking="todayRanking" />
 
-      <ProjectsCard :class="$q.screen.gt.md ? 'card' : 'card-mobile'" :title="$t('dashboard.yesterdayProjects')"
+      <ProjectsCard :class="$q.screen.gt.sm ? 'card' : 'card-mobile'" :title="$t('dashboard.yesterdayProjects')"
         :projects="yesterdayProjects" />
-      <RankingCard :class="$q.screen.gt.md ? 'card' : 'card-mobile'" :title="$t('dashboard.yesterdayRanking')"
+      <RankingCard :class="$q.screen.gt.sm ? 'card' : 'card-mobile'" :title="$t('dashboard.yesterdayRanking')"
         :ranking="yesterdayRanking" />
 
-      <ProjectsCard :class="$q.screen.gt.md ? 'card' : 'card-mobile'" :title="$t('dashboard.weekProjects')"
+      <ProjectsCard :class="$q.screen.gt.sm ? 'card' : 'card-mobile'" :title="$t('dashboard.weekProjects')"
         :projects="weekProjects" />
-      <RankingCard :class="$q.screen.gt.md ? 'card' : 'card-mobile'" :title="$t('dashboard.weekRanking')"
+      <RankingCard :class="$q.screen.gt.sm ? 'card' : 'card-mobile'" :title="$t('dashboard.weekRanking')"
         :ranking="weekRanking" />
 
-      <ProjectsCard :class="$q.screen.gt.md ? 'card' : 'card-mobile'" :title="$t('dashboard.lastWeekProjects')"
+      <ProjectsCard :class="$q.screen.gt.sm ? 'card' : 'card-mobile'" :title="$t('dashboard.lastWeekProjects')"
         :projects="lastWeekProjects" />
-      <RankingCard :class="$q.screen.gt.md ? 'card' : 'card-mobile'" :title="$t('dashboard.lastWeekRanking')"
+      <RankingCard :class="$q.screen.gt.sm ? 'card' : 'card-mobile'" :title="$t('dashboard.lastWeekRanking')"
         :ranking="lastWeekRanking" />
 
-      <ProjectsCard :class="$q.screen.gt.md ? 'card' : 'card-mobile'" :title="$t('dashboard.monthProjects')"
+      <ProjectsCard :class="$q.screen.gt.sm ? 'card' : 'card-mobile'" :title="$t('dashboard.monthProjects')"
         :projects="monthProjects" />
-      <RankingCard :class="$q.screen.gt.md ? 'card' : 'card-mobile'" :title="$t('dashboard.monthRanking')"
+      <RankingCard :class="$q.screen.gt.sm ? 'card' : 'card-mobile'" :title="$t('dashboard.monthRanking')"
         :ranking="monthRanking" />
 
-      <ProjectsCard :class="$q.screen.gt.md ? 'card' : 'card-mobile'" :title="$t('dashboard.lastMonthProjects')"
+      <ProjectsCard :class="$q.screen.gt.sm ? 'card' : 'card-mobile'" :title="$t('dashboard.lastMonthProjects')"
         :projects="lastMonthProjects" />
-      <RankingCard :class="$q.screen.gt.md ? 'card' : 'card-mobile'" :title="$t('dashboard.lastMonthRanking')"
+      <RankingCard :class="$q.screen.gt.sm ? 'card' : 'card-mobile'" :title="$t('dashboard.lastMonthRanking')"
         :ranking="lastMonthRanking" />
 
     </div>
@@ -65,7 +65,7 @@ const lastMonthRanking = ref([])
 
 
 function getDateRange(type) {
-  const FORMAT = "YYYY-MM-DD HH:mm:ss"
+  const FORMAT = "YYYY-MM-DD"
   const m = moment()
 
   switch (type) {
@@ -106,73 +106,73 @@ const refreshData = () => {
 
   api.getRepoBranches({ since: todaySince, until: todayUntil }).then(res => {
     if (res.code === 200) {
-      todayProjects.value = res.data
+      todayProjects.value = res.data || []
     }
   })
 
   api.getRanking({ since: todaySince, until: todayUntil }).then(res => {
     if (res.code === 200) {
-      todayRanking.value = res.data
+      todayRanking.value = res.data || []
     }
   })
 
   api.getRepoBranches({ since: yesterdaySince, until: yesterdayUntil }).then(res => {
     if (res.code === 200) {
-      yesterdayProjects.value = res.data
+      yesterdayProjects.value = res.data || []
     }
   })
 
   api.getRanking({ since: yesterdaySince, until: yesterdayUntil }).then(res => {
     if (res.code === 200) {
-      yesterdayRanking.value = res.data
+      yesterdayRanking.value = res.data || [] 
     }
   })
 
   api.getRepoBranches({ since: weekSince, until: weekUntil }).then(res => {
     if (res.code === 200) {
-      weekProjects.value = res.data
+      weekProjects.value = res.data || []
     }
   })
 
   api.getRanking({ since: weekSince, until: weekUntil }).then(res => {
     if (res.code === 200) {
-      weekRanking.value = res.data
+      weekRanking.value = res.data || []
     }
   })
 
   api.getRepoBranches({ since: lastWeekSince, until: lastWeekUntil }).then(res => {
     if (res.code === 200) {
-      lastWeekProjects.value = res.data
+      lastWeekProjects.value = res.data || []
     }
   })
 
   api.getRanking({ since: lastWeekSince, until: lastWeekUntil }).then(res => {
     if (res.code === 200) {
-      lastWeekRanking.value = res.data
+      lastWeekRanking.value = res.data || []
     }
   })
 
   api.getRepoBranches({ since: monthSince, until: monthUntil }).then(res => {
     if (res.code === 200) {
-      monthProjects.value = res.data
+      monthProjects.value = res.data || []
     }
   })
 
   api.getRanking({ since: monthSince, until: monthUntil }).then(res => {
     if (res.code === 200) {
-      monthRanking.value = res.data
+      monthRanking.value = res.data || []
     }
   })
 
   api.getRepoBranches({ since: lastMonthSince, until: lastMonthUntil }).then(res => {
     if (res.code === 200) {
-      lastMonthProjects.value = res.data
+      lastMonthProjects.value = res.data || []
     }
   })
 
   api.getRanking({ since: lastMonthSince, until: lastMonthUntil }).then(res => {
     if (res.code === 200) {
-      lastMonthRanking.value = res.data
+      lastMonthRanking.value = res.data || []
     }
   })
 }

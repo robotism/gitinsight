@@ -34,9 +34,11 @@ import ConditionFilter from "../../components/aynalisis/ConditionFilter.vue"
 import AnalysisView from "../../components/aynalisis/AnalysisView.vue"
 import CommitLogs from "../../components/aynalisis/CommitLogs.vue"
 
+import moment from "moment"
+
 const filter = ref({
-  since: "",
-  until: "",
+  since: moment().subtract(2, "month").startOf("month").format("YYYY-MM-DD"),
+  until: moment().format("YYYY-MM-DD"),
   branches: [],
   contributors: [],
 })

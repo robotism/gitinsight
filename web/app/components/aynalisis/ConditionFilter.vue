@@ -7,8 +7,20 @@
                 <q-expansion-item class="w-full group1" expand-separator default-opened icon="📅"
                     :label="$t('timeRange')">
                     <q-card class="w-full px-2 pb-2 max-h-[20vh] overflow-y-auto">
-                        <q-input dense v-model="range.since" type="date" clearable :prefix="$t('since')" />
-                        <q-input dense v-model="range.until" type="date" clearable :prefix="$t('until')" />
+                        <div class="flex flex-row flex-wrap">
+                            <q-btn class="mx-1" flat size="xs" @click="setDateRange('today')" :label="$t('today')" />
+                            <q-btn class="mx-1" flat size="xs" @click="setDateRange('yesterday')" :label="$t('yesterday')" />
+
+                            <q-btn class="mx-1" flat size="xs" @click="setDateRange('thisWeek')" :label="$t('weekThis')" />
+                            <q-btn class="mx-1" flat size="xs" @click="setDateRange('lastWeek')" :label="$t('weekLast')" />
+                            <q-btn class="mx-1" flat size="xs" @click="setDateRange('beforeLastWeek')" :label="$t('weekBeforeLast')" />
+
+                            <q-btn class="mx-1" flat size="xs" @click="setDateRange('thisMonth')" :label="$t('monthThis')" />
+                            <q-btn class="mx-1" flat size="xs" @click="setDateRange('lastMonth')" :label="$t('monthLast')" />
+                            <q-btn class="mx-1" flat size="xs" @click="setDateRange('beforeLastMonth')" :label="$t('monthBeforeLast')" />
+                        </div>
+                        <q-input dense v-model="range.since" type="date" :prefix="$t('since')" min="2025-01-01" />
+                        <q-input dense v-model="range.until" type="date" :prefix="$t('until')" min="2025-01-01" />
                         <q-input dense v-model="range.geEffective" flat clearable type="number"
                             :prefix="$t('effectives') + '>='" />
                         <q-input dense v-model="range.leEffective" flat clearable type="number"
@@ -22,7 +34,7 @@
                         <q-option-group class="w-full text-nowrap flex-wrap" dense v-model="authorSelections"
                             :options="authorOptions" color="purple" type="checkbox">
                             <template v-slot:label="opt">
-                                <span class="text-purple text-[8px]">{{ opt.label }}</span>
+                                <span class="text-purple text-[10px]">{{ opt.label }}</span>
                             </template>
                         </q-option-group>
                     </q-card>
@@ -47,7 +59,8 @@
 
 <script lang="ts" setup>
 import { watch } from "vue";
-import DateInput from "~/components/tool/DatePicker.vue";
+
+import moment from "moment";
 
 const api = useApi();
 const i18n = useI18n();
@@ -61,10 +74,10 @@ const props = defineProps({
 const emits = defineEmits(["update:filter"]);
 
 const range: Ref<any> = ref({
-    since: "",
-    until: "",
-    leEffective: "",
-    geEffective: "",
+    since: props.filter?.since || "",
+    until: props.filter?.until || "",
+    leEffective: props.filter?.leEffective || "",
+    geEffective: props.filter?.geEffective || "",
 });
 
 const repos: Ref<any[]> = ref([]);
@@ -201,6 +214,53 @@ watch(
     { deep: true }
 );
 
+function setDateRange(type: string) {
+    const [since, until] = getDateRange(type)
+    range.value.since = since || range.value.since
+    range.value.until = until || range.value.until
+}
+
+function getDateRange(type: string) {
+  const FORMAT = "YYYY-MM-DD"
+  const m = moment()
+
+  switch (type) {
+    case "today":
+      return [m.startOf("day").format(FORMAT), m.endOf("day").format(FORMAT)]
+    case "yesterday":
+      return [
+        m.clone().subtract(1, "day").startOf("day").format(FORMAT),
+        m.clone().subtract(1, "day").endOf("day").format(FORMAT)
+      ]
+    case "thisWeek":
+      return [m.startOf("week").format(FORMAT), m.endOf("week").format(FORMAT)]
+    case "lastWeek":
+      return [
+        m.clone().subtract(1, "week").startOf("week").format(FORMAT),
+        m.clone().subtract(1, "week").endOf("week").format(FORMAT)
+      ]
+    case "beforeLastWeek":
+      return [
+        m.clone().subtract(2, "week").startOf("week").format(FORMAT),
+        m.clone().subtract(2, "week").endOf("week").format(FORMAT)
+      ]
+    case "thisMonth":
+      return [m.startOf("month").format(FORMAT), m.endOf("month").format(FORMAT)]
+    case "lastMonth":
+      return [
+        m.clone().subtract(1, "month").startOf("month").format(FORMAT),
+        m.clone().subtract(1, "month").endOf("month").format(FORMAT)
+      ]
+    case "beforeLastMonth":
+      return [
+        m.clone().subtract(2, "month").startOf("month").format(FORMAT),
+        m.clone().subtract(2, "month").endOf("month").format(FORMAT)
+      ]
+    default:
+      return []
+  }
+}
+
 const getData = () => {
     api.getRepoBranches().then((res: any) => {
         const list: any[] = [];
@@ -264,5 +324,4 @@ onMounted(() => {
 :deep(.q-field__prefix) {
     color: var(--q-color-primary) !important;
 }
-
 </style>

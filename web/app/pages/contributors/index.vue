@@ -5,7 +5,7 @@
       <q-toggle class="text-xs ml-auto mr-32" dense v-model="autoRefresh" :label="$t('autoRefresh')" />
     </div>
 
-    <AuthorRanking class="q-pa-md w-[80vw] max-w-[1080px]" :authors="rows" :since="since" />
+    <AuthorRanking class="q-pa-md w-[80vw] max-w-[1080px]" :authors="rows" :since="since" :until="until" />
 
     <!-- 提交频率图-->
     <div class="q-pa-md w-[80vw] max-w-[1080px]" v-for="(item, index) in commitsPeriods" :key="index">
@@ -26,13 +26,15 @@ const i18n = useI18n();
 const rows = ref<any[]>([]);
 
 const since = ref("");
+const until = ref("");
 
 const commitsPeriods = ref<any[]>([]);
 
 const getContributors = async () => {
   const resp: any = await api.getContributors();
   rows.value = resp?.data || [];
-  since.value = resp?.meta?.since;
+  since.value = resp?.meta?.since || '';
+  until.value = resp?.meta?.until || '';
 
   getCommitsPeriods();
 };

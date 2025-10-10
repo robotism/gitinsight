@@ -105,6 +105,7 @@ func IsRepoUpToDate(config *Config, repoUrl string, repoPath string, branchName 
 	cacheCount, err := CountCommitLogs(&CommitLogFilter{
 		RepoUrl:    repoUrl,
 		BranchName: branchName,
+		DateFrom:   config.Since,
 	})
 	if err != nil {
 		log.Printf("❌  count cache commit state:%s %s %v\n", repoUrl, branchName, err)
@@ -121,6 +122,7 @@ func IsRepoUpToDate(config *Config, repoUrl string, repoPath string, branchName 
 		Limit:      1,
 		RepoUrl:    repoUrl,
 		BranchName: branchName,
+		DateFrom:   config.Since,
 	})
 	log.Printf("    ⏳ ----Cache latest log:%s %s %v\n", repoUrl, branchName, cacheLastestLog)
 

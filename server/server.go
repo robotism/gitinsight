@@ -50,7 +50,7 @@ func Run(config *AppConfig) error {
 			log.Printf("Will reset database and repo cache, wait %d seconds...", 3-i)
 			time.Sleep(1 * time.Second)
 		}
-		err := gitinsight.ResetDb()
+		err := gitinsight.ResetDb(&insight)
 		if err != nil {
 			return err
 		}
@@ -69,7 +69,9 @@ func Run(config *AppConfig) error {
 
 	log.Printf("load config: %v\n", config)
 
-	StartCrond(&insight)
+	if !insight.ReadOnly {
+		StartCrond(&insight)
+	}
 
 	if config.Debug {
 		gin.SetMode(gin.DebugMode)

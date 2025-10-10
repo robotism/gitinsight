@@ -161,12 +161,16 @@ func GetCommitLogs(filter *CommitLogFilter) ([]CommitLogModel, error) {
 	return commitLogs, err
 }
 
-func ResetCommit() error {
+func ResetCommit(since string) error {
 	if gdb == nil {
 		return errors.New("database not initialized")
 	}
 	ctx := context.Background()
-	_, err := gdb.NewDropTable().IfExists().Model(&CommitLogModel{}).Exec(ctx)
+	query := gdb.NewDelete().Model(&CommitLogModel{})
+	if since != "" {
+		query.Where("date >= ?", since)
+	}
+	_, err := query.Exec(ctx)
 	if err != nil {
 		return err
 	}

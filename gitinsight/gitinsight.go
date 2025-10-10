@@ -15,13 +15,14 @@ import (
 )
 
 type Config struct {
+	Reset    bool     `mapstructure:"reset" description:"reset" default:"false"`
+	ReadOnly bool     `mapstructure:"readonly" description:"read_only" default:"false"`
+	Interval string   `mapstructure:"interval" description:"interval" default:"60m"`
+	Since    string   `mapstructure:"since" description:"since" default:""`
 	Auths    []Auth   `mapstructure:"auths" description:"auths"`
 	Repos    []Repo   `mapstructure:"repos" description:"repos"`
 	Authors  []Author `mapstructure:"authors" description:"authors"`
-	Reset    bool     `mapstructure:"reset" description:"reset" default:"false"`
 	Cache    Cache    `mapstructure:"cache" description:"cache"`
-	Interval string   `mapstructure:"interval" description:"interval" default:"60m"`
-	Since    string   `mapstructure:"since" description:"since" default:""`
 }
 
 type Auth struct {

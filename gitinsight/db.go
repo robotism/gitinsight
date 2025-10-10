@@ -13,8 +13,8 @@ import (
 
 var gdb *bun.DB
 
-func ResetDb() error {
-	err := ResetCommit()
+func ResetDb(config *Config) error {
+	err := ResetCommit(config.Since)
 	if err != nil {
 		return err
 	}
