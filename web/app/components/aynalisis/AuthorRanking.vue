@@ -53,7 +53,7 @@
       </template>
 
       <template v-slot:bottom>
-        <div class="flex flex-row nowrap" >
+        <div class="flex flex-row nowrap">
           <div class="mr-1">{{ $t("timeRange") }}:</div>
           <div v-if="since" color="primary" text-color="white">
             {{ since?.split?.(" ")?.[0] }}
@@ -64,13 +64,23 @@
           </div>
         </div>
       </template>
+
+      <template v-slot:no-data="{ icon, message, filter }">
+        <div class="full-width row flex-center text-accent q-gutter-sm">
+          <q-icon size="2em" name="sentiment_dissatisfied" />
+          <span>
+            {{ message }}
+          </span>
+          <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
+        </div>
+      </template>
+
     </q-table>
   </div>
 </template>
 
-<script lang="ts" setup>
+<script setup>
 import { ref } from "vue";
-import type { QTableColumn } from "quasar";
 
 const i18n = useI18n();
 
@@ -92,6 +102,10 @@ const props = defineProps({
   },
   sortDirection: {
     type: String,
+  },
+  hideColumns: {
+    type: Array,
+    default: () => []
   }
 })
 
@@ -101,52 +115,54 @@ const pagination = ref({
   descending: props.sortDirection === "desc",
 });
 
-const columns: QTableColumn<any>[] = [
-  {
-    name: "nickname",
-    label: i18n.t("name"),
-    align: "center",
-    field: "nickname",
-    sortable: true,
-  },
-  { name: "name", label: i18n.t("nickname"), align: "center", field: "name" },
-  { name: "email", label: i18n.t("email"), align: "center", field: "email" },
-  {
-    name: "commits",
-    label: i18n.t("commits"),
-    align: "center",
-    field: "commits",
-    sortable: true
-  },
-  {
-    name: "additions",
-    label: i18n.t("additions"),
-    align: "center",
-    field: "additions",
-    sortable: true,
-  },
-  {
-    name: "deletions",
-    label: i18n.t("deletions"),
-    align: "center",
-    field: "deletions",
-    sortable: true,
-  },
-  {
-    name: "effectives",
-    label: i18n.t("effectives"),
-    align: "center",
-    field: "effectives",
-    sortable: true,
-  },
-  {
-    name: "projects",
-    label: i18n.t("projects"),
-    align: "center",
-    field: "projects",
-    sortable: true,
-  },
-] as const;
+const columns = computed(() => {
+  return [
+    {
+      name: "nickname",
+      label: i18n.t("name"),
+      align: "center",
+      field: "nickname",
+      sortable: true,
+    },
+    { name: "name", label: i18n.t("nickname"), align: "center", field: "name" },
+    { name: "email", label: i18n.t("email"), align: "center", field: "email" },
+    {
+      name: "commits",
+      label: i18n.t("commits"),
+      align: "center",
+      field: "commits",
+      sortable: true
+    },
+    {
+      name: "additions",
+      label: i18n.t("additions"),
+      align: "center",
+      field: "additions",
+      sortable: true,
+    },
+    {
+      name: "deletions",
+      label: i18n.t("deletions"),
+      align: "center",
+      field: "deletions",
+      sortable: true,
+    },
+    {
+      name: "effectives",
+      label: i18n.t("effectives"),
+      align: "center",
+      field: "effectives",
+      sortable: true,
+    },
+    {
+      name: "projects",
+      label: i18n.t("projects"),
+      align: "center",
+      field: "projects",
+      sortable: true,
+    },
+  ].filter((col) => !props.hideColumns.includes(col.name));
+});
 
 const rows = computed(() => props.authors);
 

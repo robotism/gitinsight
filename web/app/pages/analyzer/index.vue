@@ -37,8 +37,10 @@ import CommitLogs from "../../components/aynalisis/CommitLogs.vue"
 import moment from "moment"
 
 const filter = ref({
-  since: moment().subtract(2, "month").startOf("month").format("YYYY-MM-DD"),
+  since: moment().subtract(3, "month").startOf("month").format("YYYY-MM-DD"),
   until: moment().format("YYYY-MM-DD"),
+  leEffective: "20000",
+  geEffective: "",
   branches: [],
   contributors: [],
 })

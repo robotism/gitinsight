@@ -9,15 +9,22 @@
                     <q-card class="w-full px-2 pb-2 max-h-[20vh] overflow-y-auto">
                         <div class="flex flex-row flex-wrap">
                             <q-btn class="mx-1" flat size="xs" @click="setDateRange('today')" :label="$t('today')" />
-                            <q-btn class="mx-1" flat size="xs" @click="setDateRange('yesterday')" :label="$t('yesterday')" />
+                            <q-btn class="mx-1" flat size="xs" @click="setDateRange('yesterday')"
+                                :label="$t('yesterday')" />
 
-                            <q-btn class="mx-1" flat size="xs" @click="setDateRange('thisWeek')" :label="$t('weekThis')" />
-                            <q-btn class="mx-1" flat size="xs" @click="setDateRange('lastWeek')" :label="$t('weekLast')" />
-                            <q-btn class="mx-1" flat size="xs" @click="setDateRange('beforeLastWeek')" :label="$t('weekBeforeLast')" />
+                            <q-btn class="mx-1" flat size="xs" @click="setDateRange('thisWeek')"
+                                :label="$t('weekThis')" />
+                            <q-btn class="mx-1" flat size="xs" @click="setDateRange('lastWeek')"
+                                :label="$t('weekLast')" />
+                            <q-btn class="mx-1" flat size="xs" @click="setDateRange('beforeLastWeek')"
+                                :label="$t('weekBeforeLast')" />
 
-                            <q-btn class="mx-1" flat size="xs" @click="setDateRange('thisMonth')" :label="$t('monthThis')" />
-                            <q-btn class="mx-1" flat size="xs" @click="setDateRange('lastMonth')" :label="$t('monthLast')" />
-                            <q-btn class="mx-1" flat size="xs" @click="setDateRange('beforeLastMonth')" :label="$t('monthBeforeLast')" />
+                            <q-btn class="mx-1" flat size="xs" @click="setDateRange('thisMonth')"
+                                :label="$t('monthThis')" />
+                            <q-btn class="mx-1" flat size="xs" @click="setDateRange('lastMonth')"
+                                :label="$t('monthLast')" />
+                            <q-btn class="mx-1" flat size="xs" @click="setDateRange('beforeLastMonth')"
+                                :label="$t('monthBeforeLast')" />
                         </div>
                         <q-input dense v-model="range.since" type="date" :prefix="$t('since')" min="2025-01-01" />
                         <q-input dense v-model="range.until" type="date" :prefix="$t('until')" min="2025-01-01" />
@@ -117,6 +124,7 @@ const repoOptions: ComputedRef<any[]> = computed(() => {
     fix.push(...list);
     return fix;
 });
+
 const isRepoUpdating = ref(false);
 watch(
     () => repoSelections.value,
@@ -199,17 +207,21 @@ watch(
     { deep: true }
 );
 
+const debounce = ref()
 watch(
     [range, repoSelections, authorSelections],
     () => {
-        emits("update:filter", {
-            since: range.value?.since || "",
-            until: range.value?.until || "",
-            leEffective: range.value?.leEffective || "",
-            geEffective: range.value?.geEffective || "",
-            repos: repoSelections.value.filter((item: any) => !!item),
-            authors: authorSelections.value.filter((item: any) => !!item),
-        });
+        clearTimeout(debounce.value)
+        debounce.value = setTimeout(() => {
+            emits("update:filter", {
+                since: range.value?.since || "",
+                until: range.value?.until || "",
+                leEffective: range.value?.leEffective || "",
+                geEffective: range.value?.geEffective || "",
+                repos: repoSelections.value.filter((item: any) => !!item),
+                authors: authorSelections.value.filter((item: any) => !!item),
+            });
+        }, 300)
     },
     { deep: true }
 );
@@ -221,44 +233,44 @@ function setDateRange(type: string) {
 }
 
 function getDateRange(type: string) {
-  const FORMAT = "YYYY-MM-DD"
-  const m = moment()
+    const FORMAT = "YYYY-MM-DD"
+    const m = moment()
 
-  switch (type) {
-    case "today":
-      return [m.startOf("day").format(FORMAT), m.endOf("day").format(FORMAT)]
-    case "yesterday":
-      return [
-        m.clone().subtract(1, "day").startOf("day").format(FORMAT),
-        m.clone().subtract(1, "day").endOf("day").format(FORMAT)
-      ]
-    case "thisWeek":
-      return [m.startOf("week").format(FORMAT), m.endOf("week").format(FORMAT)]
-    case "lastWeek":
-      return [
-        m.clone().subtract(1, "week").startOf("week").format(FORMAT),
-        m.clone().subtract(1, "week").endOf("week").format(FORMAT)
-      ]
-    case "beforeLastWeek":
-      return [
-        m.clone().subtract(2, "week").startOf("week").format(FORMAT),
-        m.clone().subtract(2, "week").endOf("week").format(FORMAT)
-      ]
-    case "thisMonth":
-      return [m.startOf("month").format(FORMAT), m.endOf("month").format(FORMAT)]
-    case "lastMonth":
-      return [
-        m.clone().subtract(1, "month").startOf("month").format(FORMAT),
-        m.clone().subtract(1, "month").endOf("month").format(FORMAT)
-      ]
-    case "beforeLastMonth":
-      return [
-        m.clone().subtract(2, "month").startOf("month").format(FORMAT),
-        m.clone().subtract(2, "month").endOf("month").format(FORMAT)
-      ]
-    default:
-      return []
-  }
+    switch (type) {
+        case "today":
+            return [m.startOf("day").format(FORMAT), m.endOf("day").format(FORMAT)]
+        case "yesterday":
+            return [
+                m.clone().subtract(1, "day").startOf("day").format(FORMAT),
+                m.clone().subtract(1, "day").endOf("day").format(FORMAT)
+            ]
+        case "thisWeek":
+            return [m.startOf("week").format(FORMAT), m.endOf("week").format(FORMAT)]
+        case "lastWeek":
+            return [
+                m.clone().subtract(1, "week").startOf("week").format(FORMAT),
+                m.clone().subtract(1, "week").endOf("week").format(FORMAT)
+            ]
+        case "beforeLastWeek":
+            return [
+                m.clone().subtract(2, "week").startOf("week").format(FORMAT),
+                m.clone().subtract(2, "week").endOf("week").format(FORMAT)
+            ]
+        case "thisMonth":
+            return [m.startOf("month").format(FORMAT), m.endOf("month").format(FORMAT)]
+        case "lastMonth":
+            return [
+                m.clone().subtract(1, "month").startOf("month").format(FORMAT),
+                m.clone().subtract(1, "month").endOf("month").format(FORMAT)
+            ]
+        case "beforeLastMonth":
+            return [
+                m.clone().subtract(2, "month").startOf("month").format(FORMAT),
+                m.clone().subtract(2, "month").endOf("month").format(FORMAT)
+            ]
+        default:
+            return []
+    }
 }
 
 const getData = () => {

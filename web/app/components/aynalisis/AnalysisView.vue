@@ -9,13 +9,16 @@
             <div class="w-full flex flex-col" :class="$q.screen.gt.sm ? 'max-w-[700px]' : 'w-full'">
                 <!-- 贡献者 -->
                 <AuthorRanking :class="$q.screen.gt.sm ? 'max-w-[700px]' : 'w-full'" :authors="authors" :since="since"
-                    :until="until" sortBy="effectives" sortDirection="desc" />
+                    :until="until" sortBy="effectives" sortDirection="desc" :hideColumns="['name', 'email']" />
 
                 <!-- 提交频率图-->
                 <PeriodCard :commits="commitsPeriodDay" :year="since" :title="$t('commitPeriod')" />
 
                 <!-- 提交频率图-->
                 <PeriodCard :commits="commitsPeriodWeek" :year="since" :title="$t('commitPeriod')" />
+
+                <!-- 提交频率图-->
+                <PeriodCard :commits="commitsPeriodMonth" :year="since" :title="$t('commitPeriod')" />
 
                 <!-- Commit 活跃图 -->
                 <HeatMapCard :commits="commitsAll" :year="since" :title="$t('commitHeatmap')" />
@@ -50,7 +53,7 @@ const commitsFeat = ref<any[]>([]);
 const commitsMerge = ref<any[]>([]);
 const commitsPeriodDay = ref<any[]>([]);
 const commitsPeriodWeek = ref<any[]>([]);
-
+const commitsPeriodMonth = ref<any[]>([]);
 
 const props = defineProps({
     filter: {
@@ -115,6 +118,14 @@ const getData = async () => {
         period: 'week',
     }).then((resp: any) => {
         commitsPeriodWeek.value = resp?.data || [];
+        since.value = resp?.meta?.since || since.value;
+        until.value = resp?.meta?.until || until.value;
+    });
+    api.getCommitPeriod({
+        ...props.filter,
+        period: 'month',
+    }).then((resp: any) => {
+        commitsPeriodMonth.value = resp?.data || [];
         since.value = resp?.meta?.since || since.value;
         until.value = resp?.meta?.until || until.value;
     });

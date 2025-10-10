@@ -3,7 +3,7 @@
     📝 {{ $t('commitLogs') }}
     <q-toggle class="text-xs ml-16" dense v-model="autoRefresh" :label="$t('autoRefresh')" />
   </h6>
-  <q-infinite-scroll class="w-full h-[calc(100vh-130px)] overflow-auto" :offset="50" @load="onLoad">
+  <q-infinite-scroll class="w-full h-[calc(100vh-150px)] overflow-auto" :offset="50" @load="onLoad">
     <q-item class="w-full" v-for="(c, index) in commitLogs" :key="index">
       <div class="w-full flex flex-col cursor-pointer" @click="gotoCommitUrl(c)">
         <div class="w-full text-[11px] text-blue-900 font-bold">

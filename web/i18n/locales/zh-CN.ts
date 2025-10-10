@@ -42,7 +42,7 @@ export default defineI18nLocale(async (locale) => {
     featHeatmap: "功能热度",
     mergeHeatmap: "合并热度",
     commitHeatmap: "提交热度",
-    commitPeriod: "提交频率",
+    commitPeriod: "提交统计",
 
     all: "全部",
 
