@@ -1,6 +1,8 @@
 package server
 
 import (
+	"time"
+
 	"github.com/chaos-plus/chaos-plus-toolx/xcast"
 	"github.com/gin-gonic/gin"
 	"github.com/robotism/gitinsight/gitinsight"
@@ -38,13 +40,19 @@ func getFilterFromContext(c *gin.Context) *gitinsight.CommitLogFilter {
 		limit = 50
 	}
 	if since == "" {
-		since = GetConfig().Insight.Since
+		since = GetConfig().Insight.SinceTime().Format("2006-01-02 15:04:05")
 	}
+
+	sinceTime, _ := time.Parse("2006-01-02 15:04:05", since)
+	untilTime, _ := time.Parse("2006-01-02 15:04:05", until)
+
 	filter := &gitinsight.CommitLogFilter{
 		Offset:      offset,
 		Limit:       limit,
-		DateFrom:    since,
-		DateTo:      until,
+		SinceUTC:    sinceTime.UTC().Format("2006-01-02 15:04:05"),
+		UntilUTC:    untilTime.UTC().Format("2006-01-02 15:04:05"),
+		SinceTime:   sinceTime,
+		UntilTime:   untilTime,
 		RepoUrl:     repos,
 		BranchName:  branches,
 		CommitHash:  commitHash,
@@ -72,8 +80,8 @@ func GetRanking(c *gin.Context) {
 			"code":    200,
 			"message": "success",
 			"meta": gin.H{
-				"since": filter.DateFrom,
-				"until": filter.DateTo,
+				"since": filter.SinceUTC,
+				"until": filter.UntilUTC,
 			},
 			"data": ranking,
 		})
@@ -94,8 +102,8 @@ func GetRepoBranches(c *gin.Context) {
 			"code":    200,
 			"message": "success",
 			"meta": gin.H{
-				"since": filter.DateFrom,
-				"until": filter.DateTo,
+				"since": filter.SinceUTC,
+				"until": filter.UntilUTC,
 			},
 			"data": branches,
 		})
@@ -116,8 +124,8 @@ func GetContributors(c *gin.Context) {
 			"code":    200,
 			"message": "success",
 			"meta": gin.H{
-				"since": filter.DateFrom,
-				"until": filter.DateTo,
+				"since": filter.SinceUTC,
+				"until": filter.UntilUTC,
 			},
 			"data": contributors,
 		})
@@ -158,8 +166,8 @@ func GetCommits(c *gin.Context) {
 			"meta": gin.H{
 				"offset": filter.Offset,
 				"limit":  filter.Limit,
-				"since":  filter.DateFrom,
-				"until":  filter.DateTo,
+				"since":  filter.SinceUTC,
+				"until":  filter.UntilUTC,
 				"total":  count,
 				"config": config,
 			},
@@ -183,8 +191,8 @@ func GetCommitHeatmap(c *gin.Context) {
 			"code":    200,
 			"message": "success",
 			"meta": gin.H{
-				"since": filter.DateFrom,
-				"until": filter.DateTo,
+				"since": filter.SinceUTC,
+				"until": filter.UntilUTC,
 			},
 			"data": data,
 		})
@@ -206,8 +214,8 @@ func GetCommitPeriod(c *gin.Context) {
 			"code":    200,
 			"message": "success",
 			"meta": gin.H{
-				"since": filter.DateFrom,
-				"until": filter.DateTo,
+				"since": filter.SinceUTC,
+				"until": filter.UntilUTC,
 			},
 			"data": data,
 		})

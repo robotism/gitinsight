@@ -17,6 +17,9 @@ server:
         type: sqliteshim
         dsn: file:gitinsight.db
 insight:
+    reset: false
+    interval: 15m
+    since: "2025-10-01T00:00:00+08:00"
     auths:
         - domain: github.com
           username: robotism
@@ -29,11 +32,8 @@ insight:
         - name: robotism
           email: robotism@robotism.com
           nickname: robotism
-    reset: false
     cache:
         path: ./.repos
-    interval: 15m
-    since: ""
 
 ```
 

@@ -65,7 +65,7 @@ func InitCommit() error {
 	return nil
 }
 
-func ReplaceCommitLogs(repoUrl string, branchName string, since string, commitLogs []CommitLogModel) (int64, error) {
+func ReplaceCommitLogs(filter *CommitLogFilter, commitLogs []CommitLogModel) (int64, error) {
 	if gdb == nil {
 		return 0, errors.New("database not initialized")
 	}
@@ -73,15 +73,7 @@ func ReplaceCommitLogs(repoUrl string, branchName string, since string, commitLo
 	var rowsAffected int64
 	err := gdb.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
 		query := tx.NewDelete().Model(&CommitLogModel{})
-		if repoUrl != "" {
-			query.Where("repo_url = ?", repoUrl)
-		}
-		if branchName != "" {
-			query.Where("branch_name = ?", branchName)
-		}
-		if since != "" {
-			query.Where("date >= ?", since)
-		}
+		filter.DeleteQuery(query)
 		_, err := query.Exec(ctx)
 		if err != nil {
 			return err
@@ -154,7 +146,7 @@ func CountCommitLogs(filter *CommitLogFilter) (int, error) {
 	}
 	ctx := context.Background()
 	query := gdb.NewSelect().Model(&CommitLogModel{})
-	filter.Query(query)
+	filter.SelectQuery(query)
 	return query.Count(ctx)
 }
 
@@ -165,22 +157,18 @@ func GetCommitLogs(filter *CommitLogFilter) ([]CommitLogModel, error) {
 	ctx := context.Background()
 	var commitLogs []CommitLogModel = make([]CommitLogModel, 0)
 	query := gdb.NewSelect().Model(&CommitLogModel{})
-	filter.Query(query)
+	filter.SelectQuery(query)
 	query.Order("date DESC").Offset(filter.Offset).Limit(filter.Limit)
 	err := query.Scan(ctx, &commitLogs)
 	return commitLogs, err
 }
 
-func ResetCommit(since string) error {
+func ResetCommit() error {
 	if gdb == nil {
 		return errors.New("database not initialized")
 	}
 	ctx := context.Background()
-	query := gdb.NewDelete().Model(&CommitLogModel{})
-	if since != "" {
-		query.Where("date >= ?", since)
-	}
-	_, err := query.Exec(ctx)
+	_, err := gdb.NewDropTable().Model(&CommitLogModel{}).Exec(ctx)
 	if err != nil {
 		return err
 	}

@@ -37,6 +37,9 @@ func GetConfig() *AppConfig {
 }
 
 func Run(config *AppConfig) error {
+
+	log.Printf("load config: %v\n", config)
+
 	gConfig = config
 	insight := config.Insight
 	server := config.Server
@@ -67,9 +70,7 @@ func Run(config *AppConfig) error {
 		return err
 	}
 
-	log.Printf("load config: %v\n", config)
-
-	if !insight.ReadOnly {
+	if !insight.Readonly {
 		StartCrond(&insight)
 	}
 

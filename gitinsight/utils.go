@@ -6,22 +6,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	"time"
-
 	"github.com/go-git/go-git/v6"
 	"github.com/go-git/go-git/v6/plumbing/object"
 )
 
-func IsBeforeSince(config *Config, c *object.Commit) bool {
-	if config.Since != "" {
-		since, err := time.Parse("2006-01-02 15:04:05", config.Since)
-		if err == nil {
-			if c.Author.When.Before(since) {
-				return true
-			}
-		}
-	}
-	return false
+func IsBeforeSince(c *object.Commit, filter CheckUpTodateFilter) bool {
+	return !filter.SinceTime.IsZero() && c.Author.When.UTC().Before(filter.SinceTime)
 }
 
 func FindAuth(config *Config, repo *Repo) (*Auth, error) {
@@ -86,6 +76,7 @@ func extractLetters(s string) string {
 	}
 	return string(result)
 }
+
 func GetLanguageStatPatch(c *object.Commit) map[string]int {
 	languageStats := make(map[string]int)
 

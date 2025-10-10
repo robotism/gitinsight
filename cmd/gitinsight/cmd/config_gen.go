@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/robotism/flagger"
 	"github.com/robotism/gitinsight/gitinsight"
@@ -42,6 +43,11 @@ var configGenCmd = &cobra.Command{
 				},
 			},
 			Insight: gitinsight.Config{
+				Interval: "15m",
+				Reset:    false,
+				Readonly: false,
+				Parallel: true,
+				Since:    time.Date(2025, 1, 1, 0, 0, 0, 0, time.Now().Location()).Format(time.RFC3339),
 				Auths: []gitinsight.Auth{
 					{
 						Domain:   "github.com",
@@ -66,8 +72,6 @@ var configGenCmd = &cobra.Command{
 				Cache: gitinsight.Cache{
 					Path: "./.repos",
 				},
-				Interval: "15m",
-				Reset:    false,
 			},
 		}
 		fmt := filepath.Ext(genConfig.File)

@@ -3,9 +3,7 @@ package gitinsight
 import (
 	"context"
 	"errors"
-	"strings"
 
-	"github.com/chaos-plus/chaos-plus-toolx/xcast"
 	"github.com/uptrace/bun"
 )
 
@@ -30,43 +28,14 @@ func GetRepoBranches(filter *CommitLogFilter) ([]BranchDTO, error) {
 	var branches []BranchDTO
 
 	subq := gdb.NewSelect().
-	Model((*CommitLogModel)(nil)).
-	ColumnExpr("DISTINCT repo_url, branch_name, commit_hash").
-	Column("nickname").
-	Column("additions").
-	Column("deletions").
-	Column("effectives")
+		Model((*CommitLogModel)(nil)).
+		ColumnExpr("DISTINCT repo_url, branch_name, commit_hash").
+		Column("nickname").
+		Column("additions").
+		Column("deletions").
+		Column("effectives")
 
-
-	// === 过滤条件 ===
-	if filter.DateFrom != "" {
-		subq.Where("date >= ?", filter.DateFrom)
-	}
-	if filter.DateTo != "" {
-		subq.Where("date <= ?", filter.DateTo)
-	}
-	if filter.RepoUrl != "" {
-		subq.Where("repo_url IN (?)", bun.In(strings.Split(filter.RepoUrl, ",")))
-	}
-	if filter.BranchName != "" {
-		subq.Where("branch_name IN (?)", bun.In(strings.Split(filter.BranchName, ",")))
-	}
-	if filter.Nickname != "" {
-		subq.Where("nickname IN (?)", bun.In(strings.Split(filter.Nickname, ",")))
-	}
-	if filter.MessageType != "" {
-		subq.Where("message_type IN (?)", bun.In(strings.Split(filter.MessageType, ",")))
-	}
-	if filter.IsMerge != "" {
-		values := strings.Split(filter.IsMerge, ",")
-		nums := make([]int, len(values))
-		for i, v := range values {
-			nums[i] = xcast.ToInt(v)
-		}
-		subq.Where("is_merge IN (?)", bun.In(nums))
-	} else {
-		subq.Where("is_merge = 0")
-	}
+	filter.SelectQuery(subq)
 
 	// === 外层统计 ===
 	query := gdb.NewSelect().

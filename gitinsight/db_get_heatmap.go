@@ -29,7 +29,7 @@ func GetCommitHeatmapData(filter *CommitLogFilter) ([]CommitHeatmapItem, error) 
 		ColumnExpr("SUM(deletions) AS deletions").
 		ColumnExpr("SUM(effectives) AS effectives")
 
-	filter.Query(query)
+	filter.SelectQuery(query)
 
 	// ✅ 正确分组与排序（使用 Expr）
 	query.GroupExpr("DATE(date)").OrderExpr("DATE(date) ASC")

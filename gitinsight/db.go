@@ -14,7 +14,7 @@ import (
 var gdb *bun.DB
 
 func ResetDb(config *Config) error {
-	err := ResetCommit(config.Since)
+	err := ResetCommit()
 	if err != nil {
 		return err
 	}

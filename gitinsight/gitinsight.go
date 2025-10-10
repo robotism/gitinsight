@@ -1,13 +1,16 @@
 package gitinsight
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 
+	"github.com/chaos-plus/chaos-plus-toolx/xgrpool"
 	"github.com/go-git/go-git/v6"
 	"github.com/go-git/go-git/v6/config"
 	"github.com/go-git/go-git/v6/plumbing"
@@ -15,37 +18,66 @@ import (
 )
 
 type Config struct {
-	Reset    bool     `mapstructure:"reset" description:"reset" default:"false"`
-	ReadOnly bool     `mapstructure:"readonly" description:"read_only" default:"false"`
-	Interval string   `mapstructure:"interval" description:"interval" default:"60m"`
-	Since    string   `mapstructure:"since" description:"since" default:""`
-	Auths    []Auth   `mapstructure:"auths" description:"auths"`
-	Repos    []Repo   `mapstructure:"repos" description:"repos"`
-	Authors  []Author `mapstructure:"authors" description:"authors"`
-	Cache    Cache    `mapstructure:"cache" description:"cache"`
+	Reset    bool     `yaml:"reset" json:"reset" mapstructure:"reset" description:"reset" default:"false"`
+	Parallel bool     `yaml:"parallel" json:"parallel" mapstructure:"parallel" description:"parallel" default:"true"`
+	Readonly bool     `yaml:"readonly" json:"readonly" mapstructure:"readonly" description:"readonly" default:"false"`
+	Interval string   `yaml:"interval" json:"interval" mapstructure:"interval" description:"interval" default:"60m"`
+	Since    string   `yaml:"since" json:"since" mapstructure:"since" description:"since" default:""`
+	Auths    []Auth   `yaml:"auths" json:"auths" mapstructure:"auths" description:"auths"`
+	Repos    []Repo   `yaml:"repos" json:"repos" mapstructure:"repos" description:"repos"`
+	Authors  []Author `yaml:"authors" json:"authors" mapstructure:"authors" description:"authors"`
+	Cache    Cache    `yaml:"cache" json:"cache" mapstructure:"cache" description:"cache"`
+}
+
+func (config *Config) SinceTime() time.Time {
+	if config.Since == "" {
+		return time.Time{}
+	}
+	fmts := []string{
+		time.RFC3339,
+		time.RFC3339Nano,
+	}
+	for _, fmt := range fmts {
+		t, err := time.Parse(fmt, config.Since)
+		if err == nil {
+			return t
+		}
+	}
+	fmts = []string{
+		time.DateTime,
+		time.DateOnly,
+	}
+	for _, fmt := range fmts {
+		t, err := time.ParseInLocation(fmt, config.Since, time.Local)
+		if err == nil {
+			return t
+		}
+	}
+	log.Fatalf("Invalid since time: %s", config.Since)
+	return time.Time{}
 }
 
 type Auth struct {
-	Domain        string `json:"domain" mapstructure:"domain" description:"domain"`
-	Username      string `json:"username,omitempty" mapstructure:"username" description:"username"`
-	Password      string `json:"password,omitempty" mapstructure:"password" description:"password"`
-	CommitUrlTmpl string `json:"commitUrlTmpl,omitempty" mapstructure:"commit_url_tmpl" description:"commit_url_tmpl"`
+	Domain        string `yaml:"domain" json:"domain" mapstructure:"domain" description:"domain"`
+	Username      string `yaml:"username,omitempty" json:"username,omitempty" mapstructure:"username" description:"username"`
+	Password      string `yaml:"password,omitempty" json:"password,omitempty" mapstructure:"password" description:"password"`
+	CommitUrlTmpl string `yaml:"commit_url_tmpl,omitempty" json:"commit_url_tmpl,omitempty" mapstructure:"commit_url_tmpl" description:"commit_url_tmpl"`
 }
 
 type Repo struct {
-	Url      string `json:"url" mapstructure:"url" description:"url"`
-	User     string `json:"user" mapstructure:"user" description:"user"`
-	Password string `json:"password" mapstructure:"password" description:"password"`
+	Url      string `yaml:"url" json:"url" mapstructure:"url" description:"url"`
+	User     string `yaml:"user" json:"user" mapstructure:"user" description:"user"`
+	Password string `yaml:"password" json:"password" mapstructure:"password" description:"password"`
 }
 
 type Cache struct {
-	Path string `mapstructure:"path" description:"path" default:"./.repos"`
+	Path string `yaml:"path" json:"path" mapstructure:"path" description:"path" default:"./.repos"`
 }
 
 type Author struct {
-	Name     string `mapstructure:"name" description:"name"`
-	Email    string `mapstructure:"email" description:"email"`
-	Nickname string `mapstructure:"nickname" description:"nickname"`
+	Name     string `yaml:"name" json:"name" mapstructure:"name" description:"name"`
+	Email    string `yaml:"email" json:"email" mapstructure:"email" description:"email"`
+	Nickname string `yaml:"nickname" json:"nickname" mapstructure:"nickname" description:"nickname"`
 }
 
 func ResetRepo(config *Config) error {
@@ -90,19 +122,36 @@ func SyncRepo(config *Config) (map[string][]string, error) {
 		username := repoInfo.User
 		password := repoInfo.Password
 
-		// Clone or update repository
-		repo, err := CloneOrUpdateRepo(repoInfo.Url, repoPath, username, password)
-		if err != nil {
-			return nil, fmt.Errorf("error processing %s: %v", repoInfo.Url, err)
+		h := func() error {
+			// Clone or update repository
+			repo, err := CloneOrUpdateRepo(repoInfo.Url, repoPath, username, password)
+			if err != nil {
+				return fmt.Errorf("error processing %s: %v", repoInfo.Url, err)
+			}
+			// Get all branches
+			branches, err := GetBranches(repo)
+			if err != nil {
+				return fmt.Errorf("error getting branches for %s: %v", repoInfo.Url, err)
+			}
+			log.Printf("    Found %d branches\n", len(branches))
+			repoStats[repoPath] = branches
+			return nil
 		}
+		pool := xgrpool.New()
+		if config.Parallel {
+			pool.AddWithRecover(func(ctx context.Context) error {
+				return h()
+			}, func(ctx context.Context, err interface{}) {
+				log.Printf("  ⚠️ Error processing %s: %v\n", repoInfo.Url, err)
+			})
+		} else {
+			err := h()
+			if err != nil {
+				return nil, fmt.Errorf("error processing %s: %v", repoInfo.Url, err)
+			}
+		}
+		pool.Wait()
 
-		// Get all branches
-		branches, err := GetBranches(repo)
-		if err != nil {
-			return nil, fmt.Errorf("error getting branches for %s: %v", repoInfo.Url, err)
-		}
-		log.Printf("    Found %d branches\n", len(branches))
-		repoStats[repoPath] = branches
 	}
 	return repoStats, nil
 }

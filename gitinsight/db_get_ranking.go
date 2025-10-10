@@ -33,7 +33,7 @@ func GetRanking(filter *CommitLogFilter) ([]Ranking, error) {
 		ColumnExpr("DISTINCT commit_hash, nickname, author_name, author_email, additions, deletions, effectives, repo_url, date").
 		Where("is_merge = 0")
 
-	filter.Query(subQuery)
+	filter.SelectQuery(subQuery)
 
 	// 外层再统计
 	query := gdb.NewSelect().

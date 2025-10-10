@@ -3,7 +3,6 @@ package gitinsight
 import (
 	"bufio"
 	"bytes"
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -13,7 +12,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/chaos-plus/chaos-plus-toolx/xgrpool"
 	"github.com/go-git/go-git/v6"
 	"github.com/go-git/go-git/v6/plumbing"
 	"github.com/go-git/go-git/v6/plumbing/object"
@@ -41,29 +39,29 @@ type BranchState struct {
 	CommitLogsCount  int
 }
 
-func GetLatestCommitState(config *Config, repoPath string, branchName string) (*BranchState, error) {
+func GetLatestCommitState(repoPath string, filter CheckUpTodateFilter) (*BranchState, error) {
 	repo, err := git.PlainOpen(repoPath)
 	if err != nil {
 		return nil, err
 	}
 
 	// Try local branch first
-	branchRef, err := repo.Reference(plumbing.ReferenceName("refs/heads/"+branchName), true)
+	branchRef, err := repo.Reference(plumbing.ReferenceName("refs/heads/"+filter.BranchName), true)
 	if err != nil {
 		// If local branch does not exist, try remote branch
-		branchRef, err = repo.Reference(plumbing.ReferenceName("refs/remotes/origin/"+branchName), true)
+		branchRef, err = repo.Reference(plumbing.ReferenceName("refs/remotes/origin/"+filter.BranchName), true)
 		if err != nil {
 			return nil, fmt.Errorf("could not get branch reference: %v", err)
 		}
 	}
-	count := 0
 	// Get the commit history
 	cIter, err := repo.Log(&git.LogOptions{
 		From: branchRef.Hash(),
 	})
 	if err != nil {
-		return nil, errors.Join(err, fmt.Errorf("could not get commit log: %s", branchName))
+		return nil, errors.Join(err, fmt.Errorf("could not get commit log: %s", filter.BranchName))
 	}
+	count := 0
 	hashcode := ""
 	for {
 		c, err := cIter.Next()
@@ -73,9 +71,19 @@ func GetLatestCommitState(config *Config, repoPath string, branchName string) (*
 		if err != nil {
 			return nil, err
 		}
-		if IsBeforeSince(config, c) {
+		if IsBeforeSince(c, filter) {
 			break
 		}
+		isMerge := len(c.ParentHashes) > 1
+
+		if (filter.IsMerge != "1" || filter.IsMerge != "true") && isMerge {
+			continue
+		}
+		if (filter.IsMerge != "0" || filter.IsMerge != "false") && !isMerge {
+			continue
+		}
+
+		log.Printf("    🏷️  11111111111111: %s %s %s %s %s %s %s\n", repoPath, filter.BranchName, c.Hash.String(), c.Author.Name, c.Author.Email, c.Author.When, c.Message)
 		if hashcode == "" {
 			hashcode = c.Hash.String()
 		}
@@ -87,44 +95,32 @@ func GetLatestCommitState(config *Config, repoPath string, branchName string) (*
 	}, nil
 }
 
-func AnalyzeRepoCommitLogs(config *Config, repoPath string, branchNames []string) (map[string][]CommitLog, error) {
+func AnalyzeRepoCommitLogs(config *Config, repoPath string, filter CheckUpTodateFilter) ([]CommitLog, error) {
 	repo, err := git.PlainOpen(repoPath)
 	if err != nil {
 		return nil, err
 	}
-	repoStats := make(map[string][]CommitLog)
-	pool := xgrpool.New()
-	for _, name := range branchNames {
-		pool.AddWithRecover(func(ctx context.Context) error {
-			// Get branch stats
-			log.Printf("🚀  Analyzing branch commit logs: %s %s\n", repoPath, name)
-			commitLogs, err := AnalyzeBranchCommitLogs(config, repo, name)
-			if err != nil {
-				log.Printf("  ⚠️ Error analyzing branch commit logs %s: %v\n", name, err)
-				return err
-			}
-			log.Printf("    Found %s %s %d commits\n", repoPath, name, len(commitLogs))
-			repoStats[name] = commitLogs
-			return nil
-		}, func(ctx context.Context, err interface{}) {
-			log.Printf("  ⚠️ Error analyzing branch commit logs %s: %v\n", name, err)
-			panic(err)
-		})
+	// Get branch stats
+	log.Printf("🚀  Analyzing branch commit logs: %s %s\n", repoPath, filter.BranchName)
+	commitLogs, err := AnalyzeBranchCommitLogs(config, repo, filter)
+	if err != nil {
+		log.Printf("  ⚠️ Error analyzing branch commit logs %s: %v\n", filter.BranchName, err)
+		return nil, err
 	}
-	pool.Wait()
-	return repoStats, nil
+	log.Printf("    Found %s %s %d commits\n", repoPath, filter.BranchName, len(commitLogs))
+	return commitLogs, nil
 }
 
-func AnalyzeBranchCommitLogs(config *Config, repo *git.Repository, branchName string) ([]CommitLog, error) {
+func AnalyzeBranchCommitLogs(config *Config, repo *git.Repository, filter CheckUpTodateFilter) ([]CommitLog, error) {
 	// Get the branch reference (try local first, then remote)
 	var branchRef *plumbing.Reference
 	var err error
 
 	// Try local branch first
-	branchRef, err = repo.Reference(plumbing.ReferenceName("refs/heads/"+branchName), true)
+	branchRef, err = repo.Reference(plumbing.ReferenceName("refs/heads/"+filter.BranchName), true)
 	if err != nil {
 		// If local branch does not exist, try remote branch
-		branchRef, err = repo.Reference(plumbing.ReferenceName("refs/remotes/origin/"+branchName), true)
+		branchRef, err = repo.Reference(plumbing.ReferenceName("refs/remotes/origin/"+filter.BranchName), true)
 		if err != nil {
 			return nil, fmt.Errorf("could not get branch reference: %v", err)
 		}
@@ -149,7 +145,7 @@ func AnalyzeBranchCommitLogs(config *Config, repo *git.Repository, branchName st
 		if err != nil {
 			return nil, err
 		}
-		if IsBeforeSince(config, c) {
+		if IsBeforeSince(c, filter) {
 			break
 		}
 
@@ -182,7 +178,8 @@ func AnalyzeBranchCommitLogs(config *Config, repo *git.Repository, branchName st
 			LanguageStats: string(languageStatsJson),
 		}
 		commitLogs = append(commitLogs, commitLog)
-		log.Printf("    🏷️  Analyzed commit logs: %s %s %s %s %s %s %s\n", branchName, c.Hash.String(), nickname, c.Author.Name, c.Author.Email, c.Author.When, c.Message)
+		log.Printf("    🏷️  Analyzed commit logs: %s %s %s %s %s %s %s %s\n",
+			filter.RepoUrl, filter.BranchName, c.Hash.String(), nickname, c.Author.Name, c.Author.Email, c.Author.When, c.Message)
 	}
 
 	return commitLogs, nil

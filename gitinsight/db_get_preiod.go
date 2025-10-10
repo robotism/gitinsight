@@ -79,7 +79,7 @@ func GetCommitStatsByPeriodAndUser(filter *CommitLogFilter) ([]CommitPeriodStatI
 		Column("deletions").
 		Column("effectives")
 
-	filter.Query(subq)
+	filter.SelectQuery(subq)
 
 	// === 外层统计 ===
 	query := gdb.NewSelect().

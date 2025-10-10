@@ -2,34 +2,37 @@ package gitinsight
 
 import (
 	"strings"
+	"time"
 
 	"github.com/chaos-plus/chaos-plus-toolx/xcast"
 	"github.com/uptrace/bun"
 )
 
 type CommitLogFilter struct {
-	Offset int `json:"offset"`
-	Limit  int `json:"limit"`
+	Offset int
+	Limit  int
 
-	RepoUrl    string `json:"repoUrl" bun:"repo_url"`
-	BranchName string `json:"branchName" bun:"branch_name"`
-	CommitHash string `json:"commitHash" bun:"commit_hash"`
+	RepoUrl    string
+	BranchName string
+	CommitHash string
 
-	IsMerge     string `json:"isMerge" bun:"is_merge"`
-	MessageType string `json:"messageType" bun:"message_type"`
+	IsMerge     string
+	MessageType string
 
-	DateFrom string `json:"dateFrom" bun:"date_from"`
-	DateTo   string `json:"dateTo" bun:"date_to"`
+	SinceUTC  string
+	UntilUTC  string
+	SinceTime time.Time
+	UntilTime time.Time
 
-	Nickname string `json:"nickname" bun:"nickname"`
+	Nickname string
 
-	Period string `json:"period" bun:"period"`
+	Period string
 
-	LeEffective string `json:"leEffective" bun:"le_effective"`
-	GeEffective string `json:"geEffective" bun:"ge_effective"`
+	LeEffective string
+	GeEffective string
 }
 
-func (filter *CommitLogFilter) Query(query *bun.SelectQuery) {
+func (filter *CommitLogFilter) SelectQuery(query *bun.SelectQuery) {
 	if filter.RepoUrl != "" {
 		query.Where("repo_url IN (?)", bun.In(strings.Split(filter.RepoUrl, ",")))
 	}
@@ -39,11 +42,11 @@ func (filter *CommitLogFilter) Query(query *bun.SelectQuery) {
 	if filter.CommitHash != "" {
 		query.Where("commit_hash = ?", filter.CommitHash)
 	}
-	if filter.DateFrom != "" {
-		query.Where("date >= ?", filter.DateFrom)
+	if !filter.SinceTime.IsZero() {
+		query.Where("date >= ?", filter.SinceTime.Format("2006-01-02 15:04:05"))
 	}
-	if filter.DateTo != "" {
-		query.Where("date <= ?", filter.DateTo)
+	if !filter.UntilTime.IsZero() {
+		query.Where("date <= ?", filter.UntilTime.Format("2006-01-02 15:04:05"))
 	}
 	if filter.Nickname != "" {
 		query.Where("nickname IN (?)", bun.In(strings.Split(filter.Nickname, ",")))
@@ -66,5 +69,65 @@ func (filter *CommitLogFilter) Query(query *bun.SelectQuery) {
 	}
 	if filter.GeEffective != "" {
 		query.Where("effectives >= ?", xcast.ToInt(filter.GeEffective))
+	}
+}
+
+func (filter *CommitLogFilter) DeleteQuery(query *bun.DeleteQuery) {
+	if filter.RepoUrl != "" {
+		query.Where("repo_url IN (?)", bun.In(strings.Split(filter.RepoUrl, ",")))
+	}
+	if filter.BranchName != "" {
+		query.Where("branch_name IN (?)", bun.In(strings.Split(filter.BranchName, ",")))
+	}
+	if filter.CommitHash != "" {
+		query.Where("commit_hash = ?", filter.CommitHash)
+	}
+	if !filter.SinceTime.IsZero() {
+		query.Where("date >= ?", filter.SinceTime.Format("2006-01-02 15:04:05"))
+	}
+	if !filter.UntilTime.IsZero() {
+		query.Where("date <= ?", filter.UntilTime.Format("2006-01-02 15:04:05"))
+	}
+	if filter.Nickname != "" {
+		query.Where("nickname IN (?)", bun.In(strings.Split(filter.Nickname, ",")))
+	}
+	if filter.MessageType != "" {
+		query.Where("message_type IN (?)", bun.In(strings.Split(filter.MessageType, ",")))
+	}
+	if filter.IsMerge != "" {
+		values := strings.Split(filter.IsMerge, ",")
+		nums := make([]int, len(values))
+		for i, v := range values {
+			nums[i] = xcast.ToInt(v)
+		}
+		query.Where("is_merge IN (?)", bun.In(nums))
+	} else {
+		query.Where("is_merge = 0")
+	}
+	if filter.LeEffective != "" {
+		query.Where("effectives <= ?", xcast.ToInt(filter.LeEffective))
+	}
+	if filter.GeEffective != "" {
+		query.Where("effectives >= ?", xcast.ToInt(filter.GeEffective))
+	}
+}
+
+type CheckUpTodateFilter struct {
+	RepoUrl    string
+	BranchName string
+
+	IsMerge string
+
+	SinceUTC  string
+	SinceTime time.Time
+}
+
+func (filter *CheckUpTodateFilter) ToCommitLogFilter() *CommitLogFilter {
+	return &CommitLogFilter{
+		RepoUrl:    filter.RepoUrl,
+		BranchName: filter.BranchName,
+		IsMerge:    filter.IsMerge,
+		SinceTime:  filter.SinceTime,
+		SinceUTC:   filter.SinceTime.Format("2006-01-02 15:04:05"),
 	}
 }

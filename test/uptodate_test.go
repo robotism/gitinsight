@@ -40,7 +40,12 @@ func TestIsRepoUpToDate(t *testing.T) {
 		require.NoError(t, err)
 
 		for _, branch := range branches {
-			isUp, err := gitinsight.IsRepoUpToDate(&config.Insight, repoUrl, repoPath, branch)
+			isUp, err := gitinsight.IsRepoUpToDate(repoPath, gitinsight.CheckUpTodateFilter{
+				RepoUrl:    repoUrl,
+				BranchName: branch,
+				SinceUTC:   config.Insight.SinceTime().Format("2006-01-02 15:04:05"),
+				SinceTime:  config.Insight.SinceTime(),
+			})
 			if err != nil {
 				log.Printf("check failed: %s %s: %v\n", repoUrl, branch, err)
 			}

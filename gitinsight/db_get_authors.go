@@ -35,7 +35,7 @@ func GetAuthors(filter *CommitLogFilter) ([]AuthorDTO, error) {
 		Model((*CommitLogModel)(nil)).
 		ColumnExpr("DISTINCT commit_hash, nickname, author_name, author_email, additions, deletions, effectives, repo_url, date")
 
-	filter.Query(subQuery)
+	filter.SelectQuery(subQuery)
 
 	// 外层统计
 	query := gdb.NewSelect().

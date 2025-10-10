@@ -21,19 +21,29 @@ func HandleCommitLogs(insight *Config) {
 
 	log.Printf("⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳  Analyze by cron start ⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳⏳\n")
 	for repoPath, branchNames := range repos {
+		h := func(branchName string) error {
+			handleStart := time.Now()
+			err := HandleBranchCommitLogsToDb(insight, repoPath, branchName)
+			if err != nil {
+				return err
+			}
+			handleStop := time.Now()
+			handleCost := handleStop.Sub(handleStart)
+			log.Printf("⏰⏰⏰⏰⏰⏰  Handled %s %s cost %v ⏰⏰⏰⏰⏰⏰\n", repoPath, branchName, handleCost)
+			log.Printf("✅✅✅✅✅✅  Handled %s %s done ✅✅✅✅✅✅\n", repoPath, branchName)
+			return nil
+		}
 		for _, branchName := range branchNames {
-			pool.Add(func(ctx context.Context) error {
-				handleStart := time.Now()
-				err := HandleBranchCommitLogsToDb(insight, repoPath, branchName)
+			if insight.Parallel {
+				pool.Add(func(ctx context.Context) error {
+					return h(branchName)
+				})
+			} else {
+				err := h(branchName)
 				if err != nil {
 					log.Printf("❌ Error analyzing repository %s: %v\n", repoPath, err)
 				}
-				handleStop := time.Now()
-				handleCost := handleStop.Sub(handleStart)
-				log.Printf("⏰⏰⏰⏰⏰⏰  Handled %s %s cost %v ⏰⏰⏰⏰⏰⏰\n", repoPath, branchName, handleCost)
-				log.Printf("✅✅✅✅✅✅  Handled %s %s done ✅✅✅✅✅✅\n", repoPath, branchName)
-				return nil
-			})
+			}
 		}
 	}
 	pool.Wait()
@@ -45,7 +55,15 @@ func HandleCommitLogs(insight *Config) {
 
 func HandleBranchCommitLogsToDb(insight *Config, repoPath string, branchName string) error {
 	repoUrl := GetRepoRemoteUrl(repoPath)
-	isUpToDate, err := IsRepoUpToDate(insight, repoUrl, repoPath, branchName)
+
+	filter := CheckUpTodateFilter{
+		RepoUrl:    repoUrl,
+		BranchName: branchName,
+		SinceTime:  insight.SinceTime(),
+		SinceUTC:   insight.SinceTime().Format("2006-01-02 15:04:05"),
+		IsMerge:    "0",
+	}
+	isUpToDate, err := IsRepoUpToDate(repoPath, filter)
 	if err != nil {
 		log.Printf("❌ Error checking repo %s branch %s: %v\n", repoUrl, branchName, err)
 		return err
@@ -53,81 +71,71 @@ func HandleBranchCommitLogsToDb(insight *Config, repoPath string, branchName str
 	if isUpToDate {
 		log.Printf("✅   Repo %s branch %s is up to date 👍👍👍👍👍👍\n", repoUrl, branchName)
 		return nil
+	} else {
+		// log.Fatal("❌   Repo branch  is not up to date ❌❌❌ \n", repoUrl, branchName)
 	}
 
-	repoStats, err := AnalyzeRepoCommitLogs(insight, repoPath, []string{branchName})
+	commitLogs, err := AnalyzeRepoCommitLogs(insight, repoPath, filter)
 	if err != nil {
 		log.Printf("❌ Error analyzing repository %s: %v\n", repoPath, err)
 		return err
 	}
 
-	for branchName, commitLogs := range repoStats {
-		log.Printf("    ⏳ Caching repo %s branch %s\n", repoUrl, branchName)
+	log.Printf("    ⏳ Caching repo %s branch %s\n", repoUrl, branchName)
 
-		commitLogModels := make([]CommitLogModel, len(commitLogs))
-		for i, commitLog := range commitLogs {
-			commitLogModels[i] = CommitLogModel{
-				RepoUrl:       repoUrl,
-				BranchName:    branchName,
-				CommitHash:    commitLog.Hash,
-				IsMerge:       commitLog.IsMerge,
-				Message:       commitLog.Message,
-				MessageType:   commitLog.MessageType,
-				Date:          commitLog.Date,
-				Additions:     commitLog.Additions,
-				Deletions:     commitLog.Deletions,
-				Effectives:    commitLog.Effectives,
-				LanguageStats: commitLog.LanguageStats,
-				AuthorName:    commitLog.AuthorName,
-				AuthorEmail:   commitLog.AuthorEmail,
-				Nickname:      commitLog.Nickname,
-			}
+	commitLogModels := make([]CommitLogModel, len(commitLogs))
+	for i, commitLog := range commitLogs {
+		commitLogModels[i] = CommitLogModel{
+			RepoUrl:       repoUrl,
+			BranchName:    filter.BranchName,
+			CommitHash:    commitLog.Hash,
+			IsMerge:       commitLog.IsMerge,
+			Message:       commitLog.Message,
+			MessageType:   commitLog.MessageType,
+			Date:          commitLog.Date,
+			Additions:     commitLog.Additions,
+			Deletions:     commitLog.Deletions,
+			Effectives:    commitLog.Effectives,
+			LanguageStats: commitLog.LanguageStats,
+			AuthorName:    commitLog.AuthorName,
+			AuthorEmail:   commitLog.AuthorEmail,
+			Nickname:      commitLog.Nickname,
 		}
-		_, err = ReplaceCommitLogs(repoUrl, branchName, insight.Since, commitLogModels)
-		if err != nil {
-			log.Printf("❌ Error caching commit logs: %v\n", err)
-			return err
-		}
-		log.Printf("✅   Cached repo %s branch commit logs\n", repoUrl)
 	}
+	_, err = ReplaceCommitLogs(filter.ToCommitLogFilter(), commitLogModels)
+	if err != nil {
+		log.Printf("❌ Error caching commit logs: %v\n", err)
+		return err
+	}
+	log.Printf("✅   Cached repo %s branch commit logs\n", repoUrl)
 	return nil
 }
 
-func IsRepoUpToDate(config *Config, repoUrl string, repoPath string, branchName string) (bool, error) {
+func IsRepoUpToDate(repoPath string, filter CheckUpTodateFilter) (bool, error) {
 
-	localState, err := GetLatestCommitState(config, repoPath, branchName)
+	localState, err := GetLatestCommitState(repoPath, filter)
 	if err != nil {
-		log.Printf("❌ Error getting latest commit state:%s %s %v\n", repoUrl, branchName, err)
+		log.Printf("❌ Error getting latest commit state:%s %s %v\n", repoPath, filter.BranchName, err)
 		return false, err
 	}
-	log.Printf("    ⏳ ---- Local state:%s %s %v\n", repoUrl, branchName, localState)
+	log.Printf("    ⏳ ---- Local state:%s %s %v\n", repoPath, filter.BranchName, localState)
 
-	cacheCount, err := CountCommitLogs(&CommitLogFilter{
-		RepoUrl:    repoUrl,
-		BranchName: branchName,
-		DateFrom:   config.Since,
-	})
+	cacheCount, err := CountCommitLogs(filter.ToCommitLogFilter())
 	if err != nil {
-		log.Printf("❌  count cache commit state:%s %s %v\n", repoUrl, branchName, err)
+		log.Printf("❌  count cache commit state:%s %s %v\n", repoPath, filter.BranchName, err)
 		return false, err
 	}
-	log.Printf("    ⏳ ----Cache log count:%s %s %d\n", repoUrl, branchName, cacheCount)
+	log.Printf("    ⏳ ----Cache log count:%s %s %d\n", repoPath, filter.BranchName, cacheCount)
 
-	if cacheCount == 0 && localState.CommitLogsCount == 0 {
+	if localState.CommitLogsCount == 0 {
 		return true, nil
 	}
 
-	cacheLastestLog, err := GetCommitLogs(&CommitLogFilter{
-		Offset:     0,
-		Limit:      1,
-		RepoUrl:    repoUrl,
-		BranchName: branchName,
-		DateFrom:   config.Since,
-	})
-	log.Printf("    ⏳ ----Cache latest log:%s %s %v\n", repoUrl, branchName, cacheLastestLog)
+	cacheLastestLog, err := GetCommitLogs(filter.ToCommitLogFilter())
+	log.Printf("    ⏳ ----Cache latest log:%s %s %v\n", repoPath, filter.BranchName, cacheLastestLog)
 
 	if err != nil {
-		log.Printf("❌ Error getting cache commit state:%s %s %v\n", repoUrl, branchName, err)
+		log.Printf("❌ Error getting cache commit state:%s %s %v\n", repoPath, filter.BranchName, err)
 		return false, err
 	}
 	if len(cacheLastestLog) != 0 {
