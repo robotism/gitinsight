@@ -40,7 +40,7 @@ func getFilterFromContext(c *gin.Context) *gitinsight.CommitLogFilter {
 		limit = 50
 	}
 	if since == "" {
-		since = GetConfig().Insight.SinceTime().Format("2006-01-02 15:04:05")
+		since = GetConfig().Insight.Since
 	}
 
 	sinceTime, _ := time.Parse("2006-01-02 15:04:05", since)
@@ -49,8 +49,8 @@ func getFilterFromContext(c *gin.Context) *gitinsight.CommitLogFilter {
 	filter := &gitinsight.CommitLogFilter{
 		Offset:      offset,
 		Limit:       limit,
-		SinceUTC:    sinceTime.UTC().Format("2006-01-02 15:04:05"),
-		UntilUTC:    untilTime.UTC().Format("2006-01-02 15:04:05"),
+		SinceUTC:    since,
+		UntilUTC:    until,
 		SinceTime:   sinceTime,
 		UntilTime:   untilTime,
 		RepoUrl:     repos,

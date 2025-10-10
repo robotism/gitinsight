@@ -43,7 +43,7 @@ func TestIsRepoUpToDate(t *testing.T) {
 			isUp, err := gitinsight.IsRepoUpToDate(repoPath, gitinsight.CheckUpTodateFilter{
 				RepoUrl:    repoUrl,
 				BranchName: branch,
-				SinceUTC:   config.Insight.SinceTime().Format("2006-01-02 15:04:05"),
+				SinceUTC:   config.Insight.Since,
 				SinceTime:  config.Insight.SinceTime(),
 			})
 			if err != nil {

@@ -54,11 +54,11 @@
 
       <template v-slot:bottom>
         <div class="flex flex-row nowrap">
-          <div class="mr-1">{{ $t("timeRange") }}:</div>
+          <div class="mr-1" v-if="since || until">{{ $t("timeRange") }}:</div>
           <div v-if="since" color="primary" text-color="white">
             {{ since?.split?.(" ")?.[0] }}
           </div>
-          <div class="mx-1">~</div>
+          <div class="mx-1" v-if="since || until">~</div>
           <div v-if="until" color="primary" text-color="white">
             {{ until?.split?.(" ")?.[0] }}
           </div>

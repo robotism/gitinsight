@@ -18,11 +18,11 @@ import (
 )
 
 type Config struct {
-	Reset    bool     `yaml:"reset" json:"reset" mapstructure:"reset" description:"reset" default:"false"`
-	Parallel bool     `yaml:"parallel" json:"parallel" mapstructure:"parallel" description:"parallel" default:"true"`
+	Reset    bool     `yaml:"reset" json:"reset" mapstructure:"clear cache and database" description:"clear cache and database" default:"false"`
+	Parallel bool     `yaml:"parallel" json:"parallel" mapstructure:"parallel analysis" description:"parallel analysis" default:"true"`
 	Readonly bool     `yaml:"readonly" json:"readonly" mapstructure:"readonly" description:"readonly" default:"false"`
-	Interval string   `yaml:"interval" json:"interval" mapstructure:"interval" description:"interval" default:"60m"`
-	Since    string   `yaml:"since" json:"since" mapstructure:"since" description:"since" default:""`
+	Interval string   `yaml:"interval" json:"interval" mapstructure:"cron interval" description:"cron interval" default:"60m"`
+	Since    string   `yaml:"since" json:"since" mapstructure:"since" description:"since time of analysis" default:""`
 	Auths    []Auth   `yaml:"auths" json:"auths" mapstructure:"auths" description:"auths"`
 	Repos    []Repo   `yaml:"repos" json:"repos" mapstructure:"repos" description:"repos"`
 	Authors  []Author `yaml:"authors" json:"authors" mapstructure:"authors" description:"authors"`

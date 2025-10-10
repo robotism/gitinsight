@@ -39,7 +39,7 @@ import moment from "moment"
 const filter = ref({
   since: moment().subtract(3, "month").startOf("month").format("YYYY-MM-DD"),
   until: moment().format("YYYY-MM-DD"),
-  leEffective: "20000",
+  leEffective: "",
   geEffective: "",
   branches: [],
   contributors: [],

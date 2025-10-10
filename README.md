@@ -18,6 +18,8 @@ server:
         dsn: file:gitinsight.db
 insight:
     reset: false
+    readonly: false
+    parallel: true
     interval: 15m
     since: "2025-10-01T00:00:00+08:00"
     auths:
@@ -69,8 +71,7 @@ ghcr.io/robotism/gitinsight:20251008
 ## Screenshot
 
 ![](screenshots/home.png)
-![](screenshots/analyzer1.png)
-![](screenshots/analyzer2.png)
+![](screenshots/analyzer.png)
 ![](screenshots/contributors.png)
 
 

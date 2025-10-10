@@ -123,11 +123,14 @@ type CheckUpTodateFilter struct {
 }
 
 func (filter *CheckUpTodateFilter) ToCommitLogFilter() *CommitLogFilter {
-	return &CommitLogFilter{
+	to := &CommitLogFilter{
 		RepoUrl:    filter.RepoUrl,
 		BranchName: filter.BranchName,
 		IsMerge:    filter.IsMerge,
 		SinceTime:  filter.SinceTime,
-		SinceUTC:   filter.SinceTime.Format("2006-01-02 15:04:05"),
 	}
+	if !filter.SinceTime.IsZero() {
+		to.SinceUTC = filter.SinceTime.UTC().Format(time.RFC3339)
+	}
+	return to
 }

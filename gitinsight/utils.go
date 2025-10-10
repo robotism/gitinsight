@@ -31,7 +31,7 @@ func FindAuth(config *Config, repo *Repo) (*Auth, error) {
 
 func FindNickname(config *Config, authorName string, authorEmail string) string {
 	for _, author := range config.Authors {
-		if author.Name == authorName || author.Email == authorEmail {
+		if strings.EqualFold(author.Name, authorName) || strings.EqualFold(author.Email, authorEmail) {
 			return author.Nickname
 		}
 	}

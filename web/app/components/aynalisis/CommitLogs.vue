@@ -6,7 +6,7 @@
   <q-infinite-scroll class="w-full h-[calc(100vh-150px)] overflow-auto" :offset="50" @load="onLoad">
     <q-item class="w-full" v-for="(c, index) in commitLogs" :key="index">
       <div class="w-full flex flex-col cursor-pointer" @click="gotoCommitUrl(c)">
-        <div class="w-full text-[11px] text-blue-900 font-bold">
+        <div class="w-full text-[10px] text-blue-900 font-bold nowrap">
           🏷️ {{ c.commitHash }}
         </div>
         <div class="w-full text-black-600 text-[10px] break-all">

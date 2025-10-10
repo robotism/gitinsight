@@ -31,6 +31,4 @@ RUN apk add --no-cache ca-certificates
 # 从构建阶段复制二进制文件
 COPY --from=builder /src/bin/gitinsight /app/gitinsight
 
-EXPOSE 8080
-
 CMD ["./gitinsight", "serv"]

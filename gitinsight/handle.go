@@ -60,7 +60,7 @@ func HandleBranchCommitLogsToDb(insight *Config, repoPath string, branchName str
 		RepoUrl:    repoUrl,
 		BranchName: branchName,
 		SinceTime:  insight.SinceTime(),
-		SinceUTC:   insight.SinceTime().Format("2006-01-02 15:04:05"),
+		SinceUTC:   insight.Since,
 		IsMerge:    "0",
 	}
 	isUpToDate, err := IsRepoUpToDate(repoPath, filter)
