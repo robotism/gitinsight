@@ -42,7 +42,7 @@
                             :options="authorOptions" type="checkbox">
                             <template v-slot:label="opt">
                                 <span class="text-[10px]" :style="{ color: hashColor(opt.label) }">{{ opt.label
-                                }}</span>
+                                    }}</span>
                             </template>
                         </q-option-group>
                     </q-card>
@@ -106,11 +106,7 @@ const repoOptions: ComputedRef<any[]> = computed(() => {
         return {
             label:
                 repoName +
-                " (" +
-                commitCount +
-                " commits, " +
-                authorCount +
-                " authors)",
+                " (" + authorCount + " " + i18n.t("contributors") + ")",
             value: item.repoUrl,
         };
     });

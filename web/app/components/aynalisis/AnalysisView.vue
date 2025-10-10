@@ -131,8 +131,12 @@ const getData = async () => {
     });
 };
 
+const debounce = ref()
 const refreshData = () => {
-    getData()
+    clearTimeout(debounce.value)
+    debounce.value = setTimeout(() => {
+        getData()
+    }, 300)
 }
 
 const interval = ref()
