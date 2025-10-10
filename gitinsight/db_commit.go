@@ -65,14 +65,24 @@ func InitCommit() error {
 	return nil
 }
 
-func ReplaceCommitLogs(repoUrl string, branchName string, commitLogs []CommitLogModel) (int64, error) {
+func ReplaceCommitLogs(repoUrl string, branchName string, since string, commitLogs []CommitLogModel) (int64, error) {
 	if gdb == nil {
 		return 0, errors.New("database not initialized")
 	}
 	ctx := context.Background()
 	var rowsAffected int64
 	err := gdb.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
-		_, err := tx.NewDelete().Model(&CommitLogModel{}).Where("repo_url = ? AND branch_name = ?", repoUrl, branchName).Exec(ctx)
+		query := tx.NewDelete().Model(&CommitLogModel{})
+		if repoUrl != "" {
+			query.Where("repo_url = ?", repoUrl)
+		}
+		if branchName != "" {
+			query.Where("branch_name = ?", branchName)
+		}
+		if since != "" {
+			query.Where("date >= ?", since)
+		}
+		_, err := query.Exec(ctx)
 		if err != nil {
 			return err
 		}

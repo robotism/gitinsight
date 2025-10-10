@@ -83,7 +83,7 @@ func HandleBranchCommitLogsToDb(insight *Config, repoPath string, branchName str
 				Nickname:      commitLog.Nickname,
 			}
 		}
-		_, err = ReplaceCommitLogs(repoUrl, branchName, commitLogModels)
+		_, err = ReplaceCommitLogs(repoUrl, branchName, insight.Since, commitLogModels)
 		if err != nil {
 			log.Printf("❌ Error caching commit logs: %v\n", err)
 			return err
