@@ -168,7 +168,7 @@ func ResetCommit() error {
 		return errors.New("database not initialized")
 	}
 	ctx := context.Background()
-	_, err := gdb.NewDropTable().Model(&CommitLogModel{}).Exec(ctx)
+	_, err := gdb.NewDropTable().Model(&CommitLogModel{}).IfExists().Exec(ctx)
 	if err != nil {
 		return err
 	}

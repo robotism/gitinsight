@@ -31,11 +31,13 @@ func FindAuth(config *Config, repo *Repo) (*Auth, error) {
 
 func FindNickname(config *Config, authorName string, authorEmail string) string {
 	for _, author := range config.Authors {
+		authorName = strings.TrimSpace(authorName)
+		authorEmail = strings.TrimSpace(authorEmail)
 		if strings.EqualFold(author.Name, authorName) || strings.EqualFold(author.Email, authorEmail) {
 			return author.Nickname
 		}
 	}
-	return ""
+	return authorName
 }
 
 func GetRepoRemoteUrl(repoPath string) string {

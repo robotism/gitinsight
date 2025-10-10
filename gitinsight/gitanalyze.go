@@ -150,9 +150,6 @@ func AnalyzeBranchCommitLogs(config *Config, repo *git.Repository, filter CheckU
 		}
 
 		nickname := FindNickname(config, c.Author.Name, c.Author.Email)
-		if nickname == "" {
-			nickname = c.Author.Name
-		}
 		var additions, deletions int
 		if len(c.ParentHashes) == 0 {
 			// 初始提交

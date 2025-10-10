@@ -8,6 +8,7 @@
                     :label="$t('timeRange')" header-class="bg-primary">
                     <q-card class="w-full px-2 pb-2 max-h-[20vh] overflow-y-auto">
                         <div class="flex flex-row flex-wrap">
+                            <q-btn class="mx-1" flat size="xs" @click="setDateRange('')" :label="$t('all')" />
                             <q-btn class="mx-1" flat size="xs" @click="setDateRange('today')" :label="$t('today')" />
                             <q-btn class="mx-1" flat size="xs" @click="setDateRange('yesterday')"
                                 :label="$t('yesterday')" />
@@ -26,8 +27,8 @@
                             <q-btn class="mx-1" flat size="xs" @click="setDateRange('beforeLastMonth')"
                                 :label="$t('monthBeforeLast')" />
                         </div>
-                        <q-input dense v-model="range.since" type="date" :prefix="$t('since')" min="2025-01-01" />
-                        <q-input dense v-model="range.until" type="date" :prefix="$t('until')" min="2025-01-01" />
+                        <q-input dense v-model="range.since" type="date" clearable :prefix="$t('since')" min="2025-01-01" />
+                        <q-input dense v-model="range.until" type="date" clearable :prefix="$t('until')" min="2025-01-01" />
                         <q-input dense v-model="range.geEffective" flat clearable type="number"
                             :prefix="$t('effectives') + '>='" />
                         <q-input dense v-model="range.leEffective" flat clearable type="number"
