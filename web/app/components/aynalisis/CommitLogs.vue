@@ -77,7 +77,7 @@ const onLoad = async (index?: number, done?: (stop?: boolean) => void) => {
   if (res.code === 200) {
     commitLogs.value.push(...res.data)
     meta.value = res.meta
-    done?.(res.data.length < limit.value) // true = 停止
+    done?.(res.data.length < limit.value || !res.data.length) // true = 停止
   } else {
     done?.(true)
   }

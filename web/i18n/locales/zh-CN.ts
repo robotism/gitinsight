@@ -45,6 +45,7 @@ export default defineI18nLocale(async (locale) => {
     commitPeriod: "提交统计",
 
     all: "全部",
+    default: "默认",
 
     today: "今日",
     yesterday: "昨日",

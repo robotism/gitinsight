@@ -7,28 +7,33 @@
                 <q-expansion-item class="w-full group1" expand-separator default-opened icon="📅"
                     :label="$t('timeRange')" header-class="bg-primary">
                     <q-card class="w-full px-2 pb-2 max-h-[20vh] overflow-y-auto">
-                        <div class="flex flex-row flex-wrap">
-                            <q-btn class="mx-1" flat size="xs" @click="setDateRange('')" :label="$t('all')" />
-                            <q-btn class="mx-1" flat size="xs" @click="setDateRange('today')" :label="$t('today')" />
-                            <q-btn class="mx-1" flat size="xs" @click="setDateRange('yesterday')"
+                        <div class="flex flex-row flex-wrap pt-1">
+                            <q-btn class="mx-0 p-1" flat size="xs" @click="setDateRange('default')"
+                                :label="$t('default')" />
+                            <q-btn class="mx-0 p-1" flat size="xs" @click="setDateRange('all')" :label="$t('all')" />
+                            <q-btn class="mx-0 p-1" flat size="xs" @click="setDateRange('today')"
+                                :label="$t('today')" />
+                            <q-btn class="mx-0 p-1" flat size="xs" @click="setDateRange('yesterday')"
                                 :label="$t('yesterday')" />
 
-                            <q-btn class="mx-1" flat size="xs" @click="setDateRange('thisWeek')"
+                            <q-btn class="mx-0 p-1" flat size="xs" @click="setDateRange('thisWeek')"
                                 :label="$t('weekThis')" />
-                            <q-btn class="mx-1" flat size="xs" @click="setDateRange('lastWeek')"
+                            <q-btn class="mx-0 p-1" flat size="xs" @click="setDateRange('lastWeek')"
                                 :label="$t('weekLast')" />
-                            <q-btn class="mx-1" flat size="xs" @click="setDateRange('beforeLastWeek')"
+                            <q-btn class="mx-0 p-1" flat size="xs" @click="setDateRange('beforeLastWeek')"
                                 :label="$t('weekBeforeLast')" />
-
-                            <q-btn class="mx-1" flat size="xs" @click="setDateRange('thisMonth')"
+                    
+                            <q-btn class="mx-0 p-1" flat size="xs" @click="setDateRange('thisMonth')"
                                 :label="$t('monthThis')" />
-                            <q-btn class="mx-1" flat size="xs" @click="setDateRange('lastMonth')"
+                            <q-btn class="mx-0 p-1" flat size="xs" @click="setDateRange('lastMonth')"
                                 :label="$t('monthLast')" />
-                            <q-btn class="mx-1" flat size="xs" @click="setDateRange('beforeLastMonth')"
+                            <q-btn class="mx-0 p-1" flat size="xs" @click="setDateRange('beforeLastMonth')"
                                 :label="$t('monthBeforeLast')" />
                         </div>
-                        <q-input dense v-model="range.since" type="date" clearable :prefix="$t('since')" min="2025-01-01" />
-                        <q-input dense v-model="range.until" type="date" clearable :prefix="$t('until')" min="2025-01-01" />
+                        <q-input dense v-model="range.since" type="date" clearable :prefix="$t('since')"
+                            min="2025-01-01" />
+                        <q-input dense v-model="range.until" type="date" clearable :prefix="$t('until')"
+                            min="2025-01-01" />
                         <q-input dense v-model="range.geEffective" flat clearable type="number"
                             :prefix="$t('effectives') + '>='" />
                         <q-input dense v-model="range.leEffective" flat clearable type="number"
@@ -43,7 +48,7 @@
                             :options="authorOptions" type="checkbox">
                             <template v-slot:label="opt">
                                 <span class="text-[10px]" :style="{ color: hashColor(opt.label) }">{{ opt.label
-                                    }}</span>
+                                }}</span>
                             </template>
                         </q-option-group>
                     </q-card>
@@ -229,13 +234,23 @@ watch(
     { deep: true }
 );
 
-function setDateRange(type: string) {
+function setDateRange(type?: string) {
+    if (type === "default") {
+        range.value.since = moment().subtract(3, "month").startOf("month").format("YYYY-MM-DD")
+        range.value.until = moment().format("YYYY-MM-DD")
+        return
+    }
+    if (type === "all" || !type) {
+        range.value.since = ""
+        range.value.until = ""
+        return
+    }
     const [since, until] = getDateRange(type)
-    range.value.since = since || range.value.since
-    range.value.until = until || range.value.until
+    range.value.since = since || ""
+    range.value.until = until || ""
 }
 
-function getDateRange(type: string) {
+function getDateRange(type?: string) {
     const FORMAT = "YYYY-MM-DD"
     const m = moment()
 

@@ -45,6 +45,7 @@ export default defineI18nLocale(async (locale) => {
     mergeHeatmap: "Merge Heatmap",
 
     all: "All",
+    default: "Default",
 
     today: "Today",
     yesterday: "Yesterday",
