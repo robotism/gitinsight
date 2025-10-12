@@ -48,8 +48,8 @@ insight:
 touch config.yaml
 docker run --rm \
 -v $(pwd)/config.yaml:/app/config.yaml \
-ghcr.io/robotism/gitinsight:20251010 \
-./gitinsight config gen -o -f /app/config.yaml 
+ghcr.io/robotism/gitinsight:latest \
+./gitinsight config gen -f /app/config.yaml 
 # vim config.yaml
 
 # run
@@ -57,7 +57,7 @@ docker run --rm \
 -p 8088:8080 \
 -v $(pwd)/config.yaml:/app/config.yaml \
 -v $(pwd)/.repos:/app/.repos \
-ghcr.io/robotism/gitinsight:20251010
+ghcr.io/robotism/gitinsight:latest
 
 ```
 
@@ -65,7 +65,17 @@ ghcr.io/robotism/gitinsight:20251010
 
 ```bash
 
+services:
 
+  gitinsight:
+    image: 'robotism/gitinsight:latest'
+    container_name: gitinsight
+    restart: always
+    volumes:
+        - ${DATA}/gitinsight/config.yaml:/app/config.yaml
+        - ${DATA}/gitinsight/.repo:/app/.repo
+    ports:
+        - '${PORT_GITINSIGHT}:8080'
 ```
 
 ## Screenshot
