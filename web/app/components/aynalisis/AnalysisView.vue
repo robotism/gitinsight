@@ -21,16 +21,16 @@
                 <PeriodCard :commits="commitsPeriodMonth" :year="since" :title="$t('commitPeriod')" />
 
                 <!-- Commit 活跃图 -->
-                <HeatMapCard :commits="commitsAll" :year="since" :title="$t('commitHeatmap')" />
+                <HeatMapCard :commits="commitsAll" :commitsAll="commitsAll" :year="since" :title="$t('commitHeatmap')" />
 
                 <!-- Fix 活跃图 -->
-                <HeatMapCard :commits="commitsFix" :year="since" :title="$t('fixHeatmap')" />
+                <HeatMapCard :commits="commitsFix" :commitsAll="commitsAll" :year="since" :title="$t('fixHeatmap')" />
 
                 <!-- Feat 活跃图 -->
-                <HeatMapCard :commits="commitsFeat" :year="since" :title="$t('featHeatmap')" />
+                <HeatMapCard :commits="commitsFeat" :commitsAll="commitsAll" :year="since" :title="$t('featHeatmap')" />
 
                 <!-- Merge 活跃图 -->
-                <HeatMapCard :commits="commitsMerge" :year="since" :title="$t('mergeHeatmap')" />
+                <HeatMapCard :commits="commitsMerge" :commitsAll="commitsAll" :year="since" :title="$t('mergeHeatmap')" />
             </div>
         </div>
     </div>

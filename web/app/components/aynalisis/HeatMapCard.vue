@@ -12,6 +12,11 @@ const props = defineProps({
   title: {
     type: String,
   },
+  commitsAll: {
+    type: Array,
+    required: true,
+    // 格式: [{ date: '2025-01-02', commits: 3 }, { date: '2025-01-03', commits: 12 }]
+  },
   commits: {
     type: Array,
     required: true,
@@ -21,22 +26,54 @@ const props = defineProps({
 
 
 /**
- * 自动计算数据范围（适配跨年情况，并固定显示至少 showDays 天）
+ * 自动计算数据范围（智能扩展至 showDays，且居中 data 范围）
+ * @param {Array} data - 数据数组，每项第一列是日期字符串
+ * @param {number} showDays - 最少显示的天数（默认90）
+ * @returns {[string, string]} [startDate, endDate]
  */
-const calcRange = (data, showDays = 90) => {
-  const today = new Date()
-  const endDate = dayjs(today)
-  const startDate = endDate.subtract(showDays - 1, 'day')
+const calcRange = ( showDays = 90) => {
+  const data = (props.commitsAll || props.commits || [])
+    .filter(item => !!item.date)
+    .map(item => [item.date.slice(0, 10), item.commits || 0])
+    .sort((a, b) => a[0].localeCompare(b[0]))
 
-  const datesFromData = (data || []).map(d => d[0]).sort()
-  const firstDataDate = datesFromData[0] ? dayjs(datesFromData[0]) : startDate
+  const today = dayjs()
+  if (!data || data.length === 0) {
+    // 没有数据，默认显示最近 showDays 天
+    const end = today
+    const start = end.subtract(showDays - 1, 'day')
+    return [start.format('YYYY-MM-DD'), end.format('YYYY-MM-DD')]
+  }
 
-  // 开始日期取数据最早日期或 showDays 天前，两者取最早
-  const start = firstDataDate.isBefore(startDate) ? firstDataDate : startDate
-  const end = endDate
+  // 从 data 中提取所有日期，并排序
+  const dates = data.map(d => dayjs(d[0])).sort((a, b) => a - b)
+  const first = dates[0]
+  const last = dates[dates.length - 1]
+  const diff = last.diff(first, 'day') + 1
+
+  if (diff >= showDays) {
+    // 如果数据跨度 >= showDays，直接返回数据范围
+    return [first.format('YYYY-MM-DD'), last.format('YYYY-MM-DD')]
+  }
+
+  // 否则，居中扩展到 showDays
+  const extraDays = showDays - diff
+  const before = Math.floor(extraDays / 2)
+  const after = extraDays - before
+
+  let start = first.subtract(before, 'day')
+  let end = last.add(after, 'day')
+
+  // 限制不要超过今天（end 最大不能超过 today）
+  if (end.isAfter(today)) {
+    const offset = end.diff(today, 'day')
+    end = today
+    start = start.subtract(offset, 'day')
+  }
 
   return [start.format('YYYY-MM-DD'), end.format('YYYY-MM-DD')]
 }
+
 
 /**
  * 生成图表配置
@@ -47,7 +84,7 @@ const option = computed(() => {
     .map(item => [item.date.slice(0, 10), item.commits || 0])
     .sort((a, b) => a[0].localeCompare(b[0]))
 
-  const range = calcRange(data)
+  const range = calcRange()
   const maxVal = Math.max(...data.map(d => d[1]), 1)
 
   return {
