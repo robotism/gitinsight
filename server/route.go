@@ -1,8 +1,6 @@
 package server
 
 import (
-	"time"
-
 	"github.com/chaos-plus/chaos-plus-toolx/xcast"
 	"github.com/gin-gonic/gin"
 	"github.com/robotism/gitinsight/gitinsight"
@@ -43,8 +41,8 @@ func getFilterFromContext(c *gin.Context) *gitinsight.CommitLogFilter {
 		since = GetConfig().Insight.Since
 	}
 
-	sinceTime, _ := time.Parse("2006-01-02 15:04:05", since)
-	untilTime, _ := time.Parse("2006-01-02 15:04:05", until)
+	sinceTime := gitinsight.ParseTime(since)
+	untilTime := gitinsight.ParseTime(until)
 
 	filter := &gitinsight.CommitLogFilter{
 		Offset:      offset,

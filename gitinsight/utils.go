@@ -5,10 +5,30 @@ import (
 	"net/url"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/go-git/go-git/v6"
 	"github.com/go-git/go-git/v6/plumbing/object"
 )
+
+func ParseTime(t string) time.Time {
+	t = strings.TrimSpace(t)
+	if t == "" {
+		return time.Time{}
+	}
+	fmts := []string{
+		time.DateTime,
+		time.RFC3339,
+		time.RFC3339Nano,
+	}
+	for _, fmt := range fmts {
+		t, err := time.Parse(fmt, t)
+		if err == nil {
+			return t
+		}
+	}
+	return time.Time{}
+}
 
 func IsBeforeSince(c *object.Commit, filter CheckUpTodateFilter) bool {
 	if !c.Committer.When.IsZero() {

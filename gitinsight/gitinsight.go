@@ -30,21 +30,11 @@ type Config struct {
 }
 
 func (config *Config) SinceTime() time.Time {
-	if config.Since == "" {
-		return time.Time{}
+	t := ParseTime(config.Since)
+	if t.IsZero() {
+		log.Fatalf("Invalid since time: %s", config.Since)
 	}
-	fmts := []string{
-		time.RFC3339,
-		time.RFC3339Nano,
-	}
-	for _, fmt := range fmts {
-		t, err := time.Parse(fmt, config.Since)
-		if err == nil {
-			return t
-		}
-	}
-	log.Fatalf("Invalid since time: %s", config.Since)
-	return time.Time{}
+	return t
 }
 
 type Auth struct {
