@@ -18,11 +18,12 @@ import (
 )
 
 type CommitLog struct {
-	Hash        string
-	Message     string
-	MessageType string
-	IsMerge     bool
-	Date        time.Time
+	Hash          string
+	Message       string
+	MessageType   string
+	IsMerge       bool
+	Date          time.Time
+	CommitterDate time.Time
 
 	Additions     int
 	Deletions     int
@@ -71,6 +72,7 @@ func GetLocalCommitState(repoPath string, filter CheckUpTodateFilter) (*BranchSt
 		if err != nil {
 			return nil, err
 		}
+
 		if IsBeforeSince(c, filter) {
 			break
 		}
@@ -145,6 +147,7 @@ func AnalyzeBranchCommitLogs(config *Config, repo *git.Repository, filter CheckU
 		if err != nil {
 			return nil, err
 		}
+
 		if IsBeforeSince(c, filter) {
 			break
 		}
@@ -158,6 +161,11 @@ func AnalyzeBranchCommitLogs(config *Config, repo *git.Repository, filter CheckU
 			additions, deletions = GetCommitDiff(c)
 		}
 
+		committerDate := c.Committer.When.UTC()
+		if committerDate.IsZero() {
+			committerDate = c.Author.When.UTC()
+		}
+
 		languageStats := GetLanguageStatPatch(c)
 		languageStatsJson, _ := json.MarshalIndent(languageStats, "", "  ")
 		commitLog := CommitLog{
@@ -166,6 +174,7 @@ func AnalyzeBranchCommitLogs(config *Config, repo *git.Repository, filter CheckU
 			MessageType:   GetMessageType(c.Message),
 			IsMerge:       len(c.ParentHashes) > 1,
 			Date:          c.Author.When.UTC(),
+			CommitterDate: committerDate,
 			Additions:     additions,
 			Deletions:     deletions,
 			Effectives:    int(math.Max(float64(additions-deletions), 0)),

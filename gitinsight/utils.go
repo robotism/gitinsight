@@ -11,7 +11,16 @@ import (
 )
 
 func IsBeforeSince(c *object.Commit, filter CheckUpTodateFilter) bool {
-	return !filter.SinceTime.IsZero() && c.Author.When.UTC().Before(filter.SinceTime)
+	if !c.Committer.When.IsZero() {
+		if !filter.SinceTime.IsZero() && c.Committer.When.UTC().Before(filter.SinceTime) {
+			return true
+		}
+	} else {
+		if !filter.SinceTime.IsZero() && c.Author.When.UTC().Before(filter.SinceTime) {
+			return true
+		}
+	}
+	return false
 }
 
 func FindAuth(config *Config, repo *Repo) (*Auth, error) {

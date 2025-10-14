@@ -43,10 +43,10 @@ func (filter *CommitLogFilter) SelectQuery(query *bun.SelectQuery) {
 		query.Where("commit_hash = ?", filter.CommitHash)
 	}
 	if !filter.SinceTime.IsZero() {
-		query.Where("date >= ?", filter.SinceTime.Format("2006-01-02 15:04:05"))
+		query.Where("committer_date >= ?", filter.SinceTime.Format("2006-01-02 15:04:05"))
 	}
 	if !filter.UntilTime.IsZero() {
-		query.Where("date <= ?", filter.UntilTime.Format("2006-01-02 15:04:05"))
+		query.Where("committer_date <= ?", filter.UntilTime.Format("2006-01-02 15:04:05"))
 	}
 	if filter.Nickname != "" {
 		query.Where("nickname IN (?)", bun.In(strings.Split(filter.Nickname, ",")))
@@ -83,10 +83,10 @@ func (filter *CommitLogFilter) DeleteQuery(query *bun.DeleteQuery) {
 		query.Where("commit_hash = ?", filter.CommitHash)
 	}
 	if !filter.SinceTime.IsZero() {
-		query.Where("date >= ?", filter.SinceTime.Format("2006-01-02 15:04:05"))
+		query.Where("committer_date >= ?", filter.SinceTime.Format("2006-01-02 15:04:05"))
 	}
 	if !filter.UntilTime.IsZero() {
-		query.Where("date <= ?", filter.UntilTime.Format("2006-01-02 15:04:05"))
+		query.Where("committer_date <= ?", filter.UntilTime.Format("2006-01-02 15:04:05"))
 	}
 	if filter.Nickname != "" {
 		query.Where("nickname IN (?)", bun.In(strings.Split(filter.Nickname, ",")))

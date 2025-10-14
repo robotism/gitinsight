@@ -27,6 +27,7 @@ type CommitLogModel struct {
 	MessageType string `json:"messageType" bun:",notnull"`
 
 	Date time.Time `json:"date" bun:",notnull"`
+	CommitterDate time.Time `json:"committerDate" bun:",notnull"`
 
 	Additions     int    `json:"additions" bun:",notnull"`
 	Deletions     int    `json:"deletions" bun:",notnull"`
@@ -51,6 +52,7 @@ func InitCommit() error {
 		"idx_branch_name":  "branch_name",
 		"idx_commit_hash":  "commit_hash",
 		"idx_date":         "date",
+		"idx_committer_date": "committer_date",
 		"idx_author_name":  "author_name",
 		"idx_author_email": "author_email",
 		"idx_nickname":     "nickname",
@@ -158,7 +160,7 @@ func GetCommitLogs(filter *CommitLogFilter) ([]CommitLogModel, error) {
 	var commitLogs []CommitLogModel = make([]CommitLogModel, 0)
 	query := gdb.NewSelect().Model(&CommitLogModel{})
 	filter.SelectQuery(query)
-	query.Order("date DESC").Offset(filter.Offset).Limit(filter.Limit)
+	query.Order("committer_date DESC").Offset(filter.Offset).Limit(filter.Limit)
 	err := query.Scan(ctx, &commitLogs)
 	return commitLogs, err
 }

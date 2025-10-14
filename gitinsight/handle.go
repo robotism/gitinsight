@@ -93,6 +93,7 @@ func HandleBranchCommitLogsToDb(insight *Config, repoPath string, branchName str
 			Message:       commitLog.Message,
 			MessageType:   commitLog.MessageType,
 			Date:          commitLog.Date,
+			CommitterDate: commitLog.CommitterDate,
 			Additions:     commitLog.Additions,
 			Deletions:     commitLog.Deletions,
 			Effectives:    commitLog.Effectives,
